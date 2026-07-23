@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:smart_canteen_shop/pages/home_page.dart';
-import 'package:smart_canteen_shop/pages/change_pin_page.dart';
+import 'package:smart_canteen_shop/pages/change_credentials_page.dart';
 import 'package:smart_canteen_shop/models/shop_user.dart';
+import 'package:smart_canteen_shop/services/api_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -165,11 +166,12 @@ class _LoginPageState extends State<LoginPage> {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () {
+                            // Directly check state and navigate without waiting for a server
                             if (ShopUser.mustChangePin) {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const ChangePinPage(),
+                                  builder: (_) => const ChangeCredentialsPage(),
                                 ),
                               );
                             } else {
