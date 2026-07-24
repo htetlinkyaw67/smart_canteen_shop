@@ -4,70 +4,138 @@ class PageHeader extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
+  final bool isShopOpen;
+  final ValueChanged<bool>? onStatusChanged;
+  final VoidCallback? onLogout;
 
   const PageHeader({
     super.key,
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.isShopOpen = true,
+    this.onStatusChanged,
+    this.onLogout,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      // ADDED MORE TOP AND BOTTOM PADDING HERE (20 vertical)
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
+      child: Row(
+        children: [
+          // STORE ICON
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: const Color(0xff0F7B94),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: 12),
+
+          // TITLE & SUBTITLE + "Owner Dashboard • OPEN / CLOSED"
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Row(
                   children: [
                     Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
                       ),
                     ),
+
+                    // DOT SEPARATOR
                     Text(
-                      subtitle,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      "  •  ",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade400,
+                      ),
                     ),
+
+                    // INLINE CLICKABLE STATUS TEXT
+                    if (onStatusChanged != null)
+                      GestureDetector(
+                        onTap: () => onStatusChanged!(!isShopOpen),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isShopOpen
+                                ? const Color(0xff10B981).withOpacity(0.12)
+                                : Colors.red.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isShopOpen
+                                      ? const Color(0xff10B981)
+                                      : Colors.red,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                isShopOpen ? "OPEN" : "CLOSED",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: isShopOpen
+                                      ? const Color(0xff10B981)
+                                      : Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                   ],
                 ),
-              ),
-
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: const Color(0xff0F7B94),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(icon, color: Colors.white),
-              ),
-            ],
-          ),
-        ),
-
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          height: 1,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.transparent,
-                Colors.grey.shade300,
-                Colors.transparent,
               ],
             ),
           ),
-        ),
 
-        const SizedBox(height: 16),
-      ],
+          // LOGOUT BUTTON
+          if (onLogout != null)
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              onPressed: onLogout,
+              tooltip: "Logout",
+              icon: const Icon(
+                Icons.logout_rounded,
+                color: Colors.grey,
+                size: 22,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -24,6 +24,31 @@ class OverviewPage extends StatefulWidget {
 
 class _OverviewPageState extends State<OverviewPage> {
   SalesFilter _selectedFilter = SalesFilter.today;
+  bool _isShopOpen = true; // SHOP STATUS STATE
+
+  void _handleLogout() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: Add your auth clear / navigation routing logic here
+            },
+            child: const Text("Logout", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   List<SaleData> get _salesData {
     switch (_selectedFilter) {
@@ -71,10 +96,28 @@ class _OverviewPageState extends State<OverviewPage> {
         children: [
           const SizedBox(height: 30),
 
-          const PageHeader(
+          // UPDATED PAGE HEADER WITH OPEN/CLOSE TOGGLE AND LOGOUT BUTTON
+          PageHeader(
             title: "Moe's Burmese Kitchen",
             subtitle: "Owner Dashboard",
             icon: Icons.storefront,
+            isShopOpen: _isShopOpen,
+            onStatusChanged: (isOpen) {
+              setState(() {
+                _isShopOpen = isOpen;
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    _isShopOpen ? "Shop is now OPEN" : "Shop is now CLOSED",
+                  ),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: _isShopOpen ? Colors.green : Colors.red,
+                ),
+              );
+            },
+            onLogout: _handleLogout,
           ),
 
           // =====================================

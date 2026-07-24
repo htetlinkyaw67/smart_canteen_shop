@@ -39,6 +39,32 @@ class _WalletPageState extends State<WalletPage> {
   String selectedFilter = "All";
   DateTime? selectedDate;
 
+  bool _isShopOpen = true; // SHOP STATUS STATE
+
+  void _handleLogout() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: Add your auth clear / navigation routing logic here
+            },
+            child: const Text("Logout", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -601,9 +627,26 @@ class _WalletPageState extends State<WalletPage> {
           const SizedBox(height: 18),
 
           PageHeader(
-            title: "Wallet",
+            title: "Moe's Burmese Kitchen",
             subtitle: "Point transactions",
             icon: Icons.account_balance_wallet,
+            isShopOpen: _isShopOpen,
+            onStatusChanged: (isOpen) {
+              setState(() {
+                _isShopOpen = isOpen;
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    _isShopOpen ? "Shop is now OPEN" : "Shop is now CLOSED",
+                  ),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: _isShopOpen ? Colors.green : Colors.red,
+                ),
+              );
+            },
+            onLogout: _handleLogout,
           ),
 
           /// HERO CARD

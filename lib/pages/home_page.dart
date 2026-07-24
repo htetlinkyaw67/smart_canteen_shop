@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import 'overview_page.dart';
@@ -23,27 +24,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int currentIndex = 0;
-
-  int get ordersBadgeCount => OrderData.orders
-      .where(
-        (e) =>
-            e.status == OrderStatus.pending ||
-            e.status == OrderStatus.preparing ||
-            e.status == OrderStatus.ready,
-      )
-      .length;
-
-  int get walletBadgeCount {
-    return WalletPage.requests
-        .where((request) => request.status.toLowerCase() == "approved")
-        .length;
-  }
-
-  int get reservedSeatsCount {
-    return SeatData.seats
-        .where((seat) => seat.status == SeatStatus.reserved)
-        .length;
-  }
 
   late final List<Widget> pages;
 
@@ -110,92 +90,169 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF4F6F8),
+      extendBody: true,
+      body: Stack(
+        children: [
+          /// PAGES
+          IndexedStack(index: currentIndex, children: pages),
 
-      body: pages[currentIndex],
+          /// FROSTED GLASS NAVIGATION BAR
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 16,
+            child: _buildGlassNavigationBar(),
+          ),
 
-      floatingActionButton: Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          color: const Color(0xff0F7B94),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xff0F7B94).withOpacity(0.35),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+          /// BALANCED SCANNER BUTTON POSITION
+          Positioned(
+            right: 20,
+            bottom: 96, // Fine-tuned height for proper spacing above the bar
+            child: Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: const Color(0xff0F7B94),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xff0F7B94).withOpacity(0.4),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                onPressed: _openGlobalScanner,
+                icon: const Icon(
+                  Icons.qr_code_scanner_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
             ),
-          ],
-        ),
-        child: IconButton(
-          onPressed: _openGlobalScanner,
-          icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// FROSTED GLASS NAVIGATION BAR
+  Widget _buildGlassNavigationBar() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(30),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          height: 66,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F7B94).withOpacity(0.85),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: ValueListenableBuilder(
+            valueListenable: AppBadges.ordersCount,
+            builder: (context, ordersCount, _) {
+              return ValueListenableBuilder(
+                valueListenable: AppBadges.seatsCount,
+                builder: (context, seatsCount, _) {
+                  return ValueListenableBuilder(
+                    valueListenable: AppBadges.walletCount,
+                    builder: (context, walletCount, _) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildBottomNavItem(Icons.show_chart, "Overview", 0),
+                          _buildBottomNavItem(Icons.restaurant, "Menu", 1),
+                          _buildBottomNavItem(
+                            Icons.inventory_2_outlined,
+                            "Orders",
+                            2,
+                            badgeCount: ordersCount,
+                          ),
+                          _buildBottomNavItem(
+                            Icons.event_seat_outlined,
+                            "Seats",
+                            3,
+                            badgeCount: seatsCount,
+                          ),
+                          _buildBottomNavItem(
+                            Icons.account_balance_wallet_outlined,
+                            "Wallet",
+                            4,
+                            badgeCount: walletCount,
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
+    );
+  }
 
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+  /// NAV ITEM BUILDER
+  Widget _buildBottomNavItem(
+    IconData icon,
+    String label,
+    int index, {
+    int badgeCount = 0,
+  }) {
+    final isActive = currentIndex == index;
+    final color = isActive ? Colors.white : Colors.white.withOpacity(0.5);
 
-      bottomNavigationBar: Container(
+    Widget iconWidget = Icon(icon, color: color, size: 20);
+
+    if (badgeCount > 0) {
+      iconWidget = Badge(
+        isLabelVisible: true,
+        label: Text(badgeCount.toString()),
+        child: iconWidget,
+      );
+    }
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          currentIndex = index;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 18,
-              offset: const Offset(0, -4),
-            ),
-          ],
+          color: isActive ? Colors.white.withOpacity(0.18) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
         ),
-        child: NavigationBar(
-          height: 70,
-          backgroundColor: const Color(0xffF7FAFB),
-
-          selectedIndex: currentIndex,
-
-          indicatorColor: const Color(0xff0F7B94).withOpacity(0.15),
-
-          onDestinationSelected: (index) {
-            setState(() {
-              currentIndex = index;
-            });
-          },
-
-          destinations: [
-            const NavigationDestination(
-              icon: Icon(Icons.show_chart),
-              label: 'Overview',
-            ),
-
-            const NavigationDestination(
-              icon: Icon(Icons.restaurant),
-              label: 'Menu',
-            ),
-
-            NavigationDestination(
-              icon: Badge(
-                isLabelVisible: AppBadges.ordersCount.value > 0,
-                label: Text(AppBadges.ordersCount.value.toString()),
-                child: const Icon(Icons.inventory_2_outlined),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            iconWidget,
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
               ),
-              label: 'Orders',
-            ),
-
-            NavigationDestination(
-              icon: Badge(
-                isLabelVisible: AppBadges.seatsCount.value > 0,
-                label: Text(AppBadges.seatsCount.value.toString()),
-                child: const Icon(Icons.event_seat_outlined),
-              ),
-              label: 'Seats',
-            ),
-
-            NavigationDestination(
-              icon: Badge(
-                isLabelVisible: AppBadges.walletCount.value > 0,
-                label: Text(AppBadges.walletCount.value.toString()),
-                child: const Icon(Icons.account_balance_wallet_outlined),
-              ),
-              label: 'Wallet',
             ),
           ],
         ),

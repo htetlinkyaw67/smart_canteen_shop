@@ -55,6 +55,32 @@ class _MenuPageState extends State<MenuPage> {
     }
   }
 
+  bool _isShopOpen = true; // SHOP STATUS STATE
+
+  void _handleLogout() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: Add your auth clear / navigation routing logic here
+            },
+            child: const Text("Logout", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   final TextEditingController _searchController = TextEditingController();
 
   final List<Map<String, dynamic>> allItems = MenuInventory.items;
@@ -118,9 +144,26 @@ class _MenuPageState extends State<MenuPage> {
           const SizedBox(height: 20),
 
           PageHeader(
-            title: "Menu",
+            title: "Moe's Burmese Kitchen",
             subtitle: "Manage food & drinks",
             icon: Icons.restaurant_menu,
+            isShopOpen: _isShopOpen,
+            onStatusChanged: (isOpen) {
+              setState(() {
+                _isShopOpen = isOpen;
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    _isShopOpen ? "Shop is now OPEN" : "Shop is now CLOSED",
+                  ),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: _isShopOpen ? Colors.green : Colors.red,
+                ),
+              );
+            },
+            onLogout: _handleLogout,
           ),
 
           _buildMealScheduleCard(),
