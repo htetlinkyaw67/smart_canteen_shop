@@ -102,7 +102,7 @@ class TopMenuTile extends StatelessWidget {
                   const SizedBox(height: 4),
 
                   Text(
-                    '${item.soldCount} sold',
+                    'အရေအတွက် ${item.soldCount}',
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                   ),
                 ],

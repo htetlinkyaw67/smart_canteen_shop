@@ -16,14 +16,12 @@ class SalesHeroCard extends StatelessWidget {
     required this.growthPercent,
     required this.orders,
     required this.customers,
-    this.filterLabel = "Today",
+    this.filterLabel = "ဒီနေ့",
     this.onAnalyticsTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final avgOrderValue = orders == 0 ? 0 : (revenue / orders);
-
     return Container(
       width: double.infinity,
 
@@ -73,7 +71,7 @@ class SalesHeroCard extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 Text(
-                  "Total Points Earned",
+                  "ပွိုင့်စုစုပေါင်း",
                   style: TextStyle(
                     color: Colors.white.withOpacity(.8),
                     fontSize: 13,
@@ -89,89 +87,6 @@ class SalesHeroCard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                   ),
-                ),
-
-                const SizedBox(height: 10),
-
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: growthPercent >= 0 ? Colors.green : Colors.red,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        "${growthPercent >= 0 ? '+' : ''}${growthPercent.toStringAsFixed(1)}%",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 10),
-
-                    Text(
-                      "vs previous period",
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(.8),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 22),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _InfoCard(
-                        icon: Icons.receipt_long_outlined,
-                        title: "Orders",
-                        value: orders.toString(),
-                      ),
-                    ),
-
-                    const SizedBox(width: 10),
-
-                    Expanded(
-                      child: _InfoCard(
-                        icon: Icons.people_alt_outlined,
-                        title: "Customers",
-                        value: customers.toString(),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 10),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _InfoCard(
-                        icon: Icons.savings_outlined,
-                        title: "Profit",
-                        value: "${profit.toStringAsFixed(0)} pts",
-                      ),
-                    ),
-
-                    const SizedBox(width: 10),
-
-                    Expanded(
-                      child: _InfoCard(
-                        icon: Icons.analytics_outlined,
-                        title: "Avg Order",
-                        value: "${avgOrderValue.toStringAsFixed(0)} pts",
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -199,7 +114,7 @@ class SalesHeroCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Sales Overview",
+              "ရောင်းအားသုံးသပ်ချက်",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -217,65 +132,6 @@ class SalesHeroCard extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String value;
-
-  const _InfoCard({
-    required this.icon,
-    required this.title,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.12),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white, size: 20),
-
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(.75),
-                    fontSize: 11,
-                  ),
-                ),
-
-                const SizedBox(height: 2),
-
-                Text(
-                  value,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

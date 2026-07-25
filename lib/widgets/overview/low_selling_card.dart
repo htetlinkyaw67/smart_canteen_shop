@@ -59,7 +59,7 @@ class LowSellingCard extends StatelessWidget {
               const SizedBox(width: 12),
               const Expanded(
                 child: Text(
-                  "Low Selling Items",
+                  "ရောင်းအားအနည်းဆုံး မီနူးများ",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
               ),
@@ -71,13 +71,6 @@ class LowSellingCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 8),
-
-          Text(
-            "Products that may need promotion or review",
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-          ),
-
           const SizedBox(height: 18),
 
           // =========================
@@ -87,7 +80,7 @@ class LowSellingCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _SummaryBox(
-                  title: "Worst Item",
+                  title: "ရောင်းအားအနည်းဆုံးမီနူး",
                   value: lowestItem?.name ?? "-",
                   color: Colors.red,
                 ),
@@ -95,7 +88,7 @@ class LowSellingCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _SummaryBox(
-                  title: "Avg Sold",
+                  title: "ပျမ်းမျှရောင်းအား",
                   value: averageSold.toStringAsFixed(1),
                   color: Colors.orange,
                 ),
@@ -113,7 +106,7 @@ class LowSellingCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 40),
               alignment: Alignment.center,
               child: Text(
-                "No menu data available",
+                "မီနူးဒေတာ မရှိပါ။",
                 style: TextStyle(color: Colors.grey.shade600),
               ),
             )
@@ -128,7 +121,7 @@ class LowSellingCard extends StatelessWidget {
                       value: item.soldCount.toDouble(),
                       maxValue: maxSold.toDouble(),
                       color: Colors.red,
-                      trailingText: '${item.soldCount} sold',
+                      trailingText: 'အရေအတွက် ${item.soldCount}',
                     ),
                   ),
                 ),
@@ -136,29 +129,9 @@ class LowSellingCard extends StatelessWidget {
           if (lowestItem != null) ...[
             const Divider(height: 30),
 
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(.06),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.orange.withOpacity(.15)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.lightbulb_outline, color: Colors.orange),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      "${lowestItem.name} has one of the lowest sales counts. Consider placing it in promotions, bundles, or highlighting it on the menu.",
-                      style: TextStyle(
-                        color: Colors.grey.shade700,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            Text(
+              '${lowestItem.name} သည် ရောင်းအားအနည်းဆုံးမီနူး ဖြစ်ပါသည်။',
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
             ),
           ],
         ],

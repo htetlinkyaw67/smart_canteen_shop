@@ -105,7 +105,6 @@ class _ChangeCredentialsPageState extends State<ChangeCredentialsPage> {
     final isStepOne = _currentStep == 1;
 
     return Scaffold(
-      backgroundColor: const Color(0xffFAFAFA),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),

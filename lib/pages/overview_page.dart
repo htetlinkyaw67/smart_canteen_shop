@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import '../widgets/page_header.dart';
 
 import '../widgets/overview/low_selling_card.dart';
-import '../widgets/overview/order_analysis_card.dart';
 import '../widgets/overview/quick_action_grid.dart';
 import '../widgets/overview/sales_filter_chips.dart';
 import '../widgets/overview/sales_hero_card.dart';
-import '../widgets/overview/sales_trend_card.dart';
 import '../widgets/overview/stats_grid.dart';
 import '../widgets/overview/top_selling_card.dart';
 import '../models/sale_data.dart';
@@ -29,24 +27,42 @@ class _OverviewPageState extends State<OverviewPage> {
   void _handleLogout() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Logout"),
-        content: const Text("Are you sure you want to log out?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Add your auth clear / navigation routing logic here
-            },
-            child: const Text("Logout", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("ထွက်မည်"),
+          content: const Text("ထွက်မယ်ဆိုတာ သေချာပါသလား။"),
+          actions: [
+            // Cancel logout
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text("မလုပ်တော့ပါ"),
+            ),
+
+            // Confirm logout
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+              ),
+              onPressed: () {
+                // Close confirmation dialog first
+                Navigator.of(dialogContext).pop();
+
+                // Go to LoginPage
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil('/login', (route) => false);
+              },
+              child: const Text(
+                "ထွက်မည်",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -72,22 +88,6 @@ class _OverviewPageState extends State<OverviewPage> {
 
   int get _customers => _salesData.fold(0, (sum, item) => sum + item.customers);
 
-  String get _trendTitle {
-    switch (_selectedFilter) {
-      case SalesFilter.today:
-        return 'Today Sales Trend';
-
-      case SalesFilter.week:
-        return 'Weekly Sales Trend';
-
-      case SalesFilter.month:
-        return 'Monthly Sales Trend';
-
-      case SalesFilter.allTime:
-        return 'Revenue History';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -99,7 +99,7 @@ class _OverviewPageState extends State<OverviewPage> {
           // UPDATED PAGE HEADER WITH OPEN/CLOSE TOGGLE AND LOGOUT BUTTON
           PageHeader(
             title: "Moe's Burmese Kitchen",
-            subtitle: "Owner Dashboard",
+            subtitle: "ဆိုင်ပိုင်ရှင် ဒက်ရှ်ဘုတ်",
             icon: Icons.storefront,
             isShopOpen: _isShopOpen,
             onStatusChanged: (isOpen) {
@@ -165,13 +165,6 @@ class _OverviewPageState extends State<OverviewPage> {
           const SizedBox(height: 10),
 
           // =====================================
-          // SALES TREND
-          // =====================================
-          SalesTrendCard(title: _trendTitle, salesData: _salesData),
-
-          const SizedBox(height: 18),
-
-          // =====================================
           // TOP SELLING ITEMS
           // =====================================
           TopSellingCard(items: DummyDashboardData.topSellingItems),
@@ -183,24 +176,15 @@ class _OverviewPageState extends State<OverviewPage> {
           // =====================================
           LowSellingCard(items: DummyDashboardData.topSellingItems),
 
-          const SizedBox(height: 18),
-
-          // =====================================
-          // ORDER ANALYSIS
-          // =====================================
-          OrderAnalysisCard(
-            pending: DummyDashboardData.pendingOrders,
-            preparing: DummyDashboardData.preparingOrders,
-            ready: DummyDashboardData.readyOrders,
-            completed: DummyDashboardData.completedOrders,
-          ),
-
           const SizedBox(height: 20),
 
           // =====================================
           // QUICK ACTIONS
           // =====================================
           QuickActionGrid(onTabChange: widget.onTabChange),
+
+          /// BOTTOM SPACE
+          const SizedBox(height: 60),
         ],
       ),
     );
@@ -209,16 +193,16 @@ class _OverviewPageState extends State<OverviewPage> {
   String get _filterLabel {
     switch (_selectedFilter) {
       case SalesFilter.today:
-        return "Today";
+        return "ဒီနေ့";
 
       case SalesFilter.week:
-        return "Last 7 Days";
+        return "လွန်ခဲ့သော ၇ ရက်က";
 
       case SalesFilter.month:
-        return "Last 30 Days";
+        return "လွန်ခဲ့သော ရက် ၃၀ က";
 
       case SalesFilter.allTime:
-        return "All Time";
+        return "အားလုံး";
     }
   }
 }

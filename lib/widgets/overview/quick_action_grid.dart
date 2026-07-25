@@ -11,7 +11,7 @@ class QuickActionGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Quick Actions',
+          'အမြန်လုပ်ဆောင်ချက်များ',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
         ),
 
@@ -29,32 +29,32 @@ class QuickActionGrid extends StatelessWidget {
             childAspectRatio: 1.12,
             children: [
               _ActionCard(
-                title: 'Orders',
-                subtitle: 'Manage customer orders',
+                title: 'အော်ဒါ',
+                subtitle: 'ဈေးဝယ်အော်ဒါစီမံခြင်း',
                 icon: Icons.receipt_long_outlined,
                 color: Colors.orange,
                 onTap: () => onTabChange(2),
               ),
 
               _ActionCard(
-                title: 'Menu',
-                subtitle: 'Edit menu items',
+                title: 'မီနူး',
+                subtitle: 'မီနူးပြင်ဆင်ခြင်း',
                 icon: Icons.restaurant_menu,
                 color: Colors.teal,
                 onTap: () => onTabChange(1),
               ),
 
               _ActionCard(
-                title: 'Seats',
-                subtitle: 'Manage seat layout',
+                title: 'ထိုင်ခုံ',
+                subtitle: 'ထိုင်ခုံစီမံခြင်း',
                 icon: Icons.event_seat_outlined,
                 color: Colors.blue,
                 onTap: () => onTabChange(3),
               ),
 
               _ActionCard(
-                title: 'Wallet',
-                subtitle: 'Points & exchange',
+                title: 'ပိုက်ဆံအိတ်',
+                subtitle: 'ပွိုင့်များနဲ့ အလဲအလှယ်',
                 icon: Icons.account_balance_wallet_outlined,
                 color: Colors.purple,
                 onTap: () => onTabChange(4),
@@ -135,7 +135,7 @@ class _ActionCard extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'Open',
+                  'ဖွင့်မည်',
                   style: TextStyle(
                     color: color,
                     fontWeight: FontWeight.w600,

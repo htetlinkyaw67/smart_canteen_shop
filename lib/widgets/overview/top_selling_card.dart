@@ -64,7 +64,7 @@ class TopSellingCard extends StatelessWidget {
 
               const Expanded(
                 child: Text(
-                  'Top Selling Items',
+                  'ရောင်းအားအကောင်းဆုံး မီနူးများ',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
               ),
@@ -78,7 +78,7 @@ class TopSellingCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _SummaryBox(
-                  title: 'Items Sold',
+                  title: 'ရောင်းရသော မီနူးအရေအတွက်',
                   value: totalSold.toString(),
                   color: Colors.green,
                 ),
@@ -88,7 +88,7 @@ class TopSellingCard extends StatelessWidget {
 
               Expanded(
                 child: _SummaryBox(
-                  title: 'Points Earned',
+                  title: 'ပွိုင့်များ',
                   value: '${totalRevenue.toStringAsFixed(0)} pts',
                   color: Colors.blue,
                 ),
@@ -116,7 +116,7 @@ class TopSellingCard extends StatelessWidget {
                     value: item.soldCount.toDouble(),
                     maxValue: highestSold.toDouble(),
                     color: Colors.green,
-                    trailingText: '${item.soldCount} sold',
+                    trailingText: 'အရေအတွက် ${item.soldCount}',
                   ),
                 ),
               ),
@@ -125,7 +125,7 @@ class TopSellingCard extends StatelessWidget {
             const Divider(height: 30),
 
             Text(
-              '${sortedItems.first.name} is currently your best-selling item.',
+              '${sortedItems.first.name} သည် ရောင်းအားအကောင်းဆုံးမီနူး ဖြစ်ပါသည်။',
               style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
             ),
           ],

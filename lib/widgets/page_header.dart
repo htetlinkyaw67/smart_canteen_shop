@@ -25,16 +25,48 @@ class PageHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
       child: Row(
         children: [
-          // STORE ICON
+          // SMART CANTEEN CIRCULAR LOGO
           Container(
             width: 46,
             height: 46,
+            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
-              color: const Color(0xff0F7B94),
-              borderRadius: BorderRadius.circular(14),
+              color: Colors.white,
+
+              // Makes the outer container circular
+              shape: BoxShape.circle,
+
+              border: Border.all(
+                color: const Color(0xff0F7B94).withOpacity(0.15),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-            child: Icon(icon, color: Colors.white, size: 22),
+            child: ClipOval(
+              // Makes the logo image circular
+              child: Image.asset(
+                'assets/images/smart_canteen_logo.jpg',
+                width: 42,
+                height: 42,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Icon(
+                      Icons.storefront_rounded,
+                      color: Color(0xff0F7B94),
+                      size: 24,
+                    ),
+                  );
+                },
+              ),
+            ),
           ),
+
           const SizedBox(width: 12),
 
           // TITLE & SUBTITLE + "Owner Dashboard • OPEN / CLOSED"

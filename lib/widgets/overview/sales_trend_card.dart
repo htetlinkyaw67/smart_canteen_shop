@@ -8,7 +8,7 @@ class SalesTrendCard extends StatelessWidget {
   const SalesTrendCard({
     super.key,
     required this.salesData,
-    this.title = 'Sales Trend',
+    this.title = 'ရောင်းအား',
   });
 
   @override
@@ -78,7 +78,7 @@ class SalesTrendCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _SummaryTile(
-                  title: 'Points Earned',
+                  title: 'ပွိုင့်စုစုပေါင်း',
                   value: '${totalRevenue.toStringAsFixed(0)} pts',
                   color: Colors.green,
                 ),
@@ -88,7 +88,7 @@ class SalesTrendCard extends StatelessWidget {
 
               Expanded(
                 child: _SummaryTile(
-                  title: 'Orders',
+                  title: 'အော်ဒါ',
                   value: '$totalOrders',
                   color: Colors.blue,
                 ),

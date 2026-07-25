@@ -58,7 +58,8 @@ flutter:
   # the material Icons class.
   uses-material-design: true
  
-
+  assets:
+    - assets/images/smart_canteen_logo.jpg
 
   # To add assets to your application, add an assets section, like this:
   # assets:

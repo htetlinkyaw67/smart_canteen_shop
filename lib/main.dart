@@ -15,12 +15,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Shop Owner Login',
+      title: 'Smart Canteen Shop',
+
       theme: ThemeData(
         primarySwatch: Colors.teal,
+        scaffoldBackgroundColor: const Color(0xFFE3F2FD),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const LoginPage(),
+
+      // App starts from the login screen
+      initialRoute: '/login',
+
+      routes: {
+        '/login': (context) => const LoginPage(),
+        '/home': (context) => const HomePage(),
+      },
     );
   }
 }

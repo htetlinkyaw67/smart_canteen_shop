@@ -36,39 +36,7 @@ class StatsGrid extends StatelessWidget {
         childAspectRatio: 1.35,
         children: [
           StatCard(
-            title: 'Points Earned',
-            value: '${revenue.toStringAsFixed(0)} pts',
-            icon: Icons.payments_outlined,
-            color: Colors.green,
-            onTap: () => onTabChange?.call(4),
-          ),
-
-          StatCard(
-            title: 'Orders',
-            value: '$orders',
-            icon: Icons.receipt_long_outlined,
-            color: Colors.blue,
-            onTap: () => onTabChange?.call(2),
-          ),
-
-          StatCard(
-            title: 'Pending',
-            value: '$pendingOrders',
-            icon: Icons.pending_actions,
-            color: Colors.orange,
-            onTap: () => onTabChange?.call(2),
-          ),
-
-          StatCard(
-            title: 'Ready',
-            value: '$readyOrders',
-            icon: Icons.check_circle_outline,
-            color: Colors.green,
-            onTap: () => onTabChange?.call(2),
-          ),
-
-          StatCard(
-            title: 'Customers',
+            title: 'ဈေးဝယ်သူ',
             value: '$customers',
             icon: Icons.people_alt_outlined,
             color: Colors.purple,
@@ -76,11 +44,27 @@ class StatsGrid extends StatelessWidget {
           ),
 
           StatCard(
-            title: 'Wallet Points',
-            value: '$walletPoints',
-            icon: Icons.account_balance_wallet_outlined,
-            color: Colors.teal,
-            onTap: () => onTabChange?.call(4),
+            title: 'အော်ဒါ',
+            value: '$orders',
+            icon: Icons.receipt_long_outlined,
+            color: Colors.blue,
+            onTap: () => onTabChange?.call(2),
+          ),
+
+          StatCard(
+            title: 'စောင့်ဆိုင်းဆဲ',
+            value: '$pendingOrders',
+            icon: Icons.pending_actions,
+            color: Colors.orange,
+            onTap: () => onTabChange?.call(2),
+          ),
+
+          StatCard(
+            title: 'အဆင်သင့်ဖြစ်ပြီး',
+            value: '$readyOrders',
+            icon: Icons.check_circle_outline,
+            color: Colors.green,
+            onTap: () => onTabChange?.call(2),
           ),
         ],
       ),

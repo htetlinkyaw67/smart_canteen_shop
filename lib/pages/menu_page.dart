@@ -60,24 +60,42 @@ class _MenuPageState extends State<MenuPage> {
   void _handleLogout() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Logout"),
-        content: const Text("Are you sure you want to log out?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Add your auth clear / navigation routing logic here
-            },
-            child: const Text("Logout", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("ထွက်မည်"),
+          content: const Text("ထွက်မယ်ဆိုတာ သေချာပါသလား။"),
+          actions: [
+            // Cancel logout
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text("မလုပ်တော့ပါ"),
+            ),
+
+            // Confirm logout
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+              ),
+              onPressed: () {
+                // Close confirmation dialog first
+                Navigator.of(dialogContext).pop();
+
+                // Go to LoginPage
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil('/login', (route) => false);
+              },
+              child: const Text(
+                "ထွက်မည်",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -365,6 +383,9 @@ class _MenuPageState extends State<MenuPage> {
           const SizedBox(height: 16),
 
           ...filteredItems.map((item) => _buildMenuCard(item: item)),
+
+          /// BOTTOM SPACE
+          const SizedBox(height: 60),
         ],
       ),
     );

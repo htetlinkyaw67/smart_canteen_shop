@@ -89,7 +89,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF4F6F8),
       extendBody: true,
       body: Stack(
         children: [
@@ -174,23 +173,27 @@ class _HomePageState extends State<HomePage> {
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildBottomNavItem(Icons.show_chart, "Overview", 0),
-                          _buildBottomNavItem(Icons.restaurant, "Menu", 1),
+                          _buildBottomNavItem(
+                            Icons.show_chart,
+                            "သုံးသပ်ချက်",
+                            0,
+                          ),
+                          _buildBottomNavItem(Icons.restaurant, "မီနူး", 1),
                           _buildBottomNavItem(
                             Icons.inventory_2_outlined,
-                            "Orders",
+                            "အော်ဒါ",
                             2,
                             badgeCount: ordersCount,
                           ),
                           _buildBottomNavItem(
                             Icons.event_seat_outlined,
-                            "Seats",
+                            "ထိုင်ခုံ",
                             3,
                             badgeCount: seatsCount,
                           ),
                           _buildBottomNavItem(
                             Icons.account_balance_wallet_outlined,
-                            "Wallet",
+                            "ပိုက်ဆံအိတ်",
                             4,
                             badgeCount: walletCount,
                           ),
