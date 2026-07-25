@@ -114,7 +114,7 @@ class TopMenuTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${item.revenue.toStringAsFixed(0)} pts',
+                  '${item.revenue.toStringAsFixed(0)} ပွိုင့်',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,

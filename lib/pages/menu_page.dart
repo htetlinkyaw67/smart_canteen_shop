@@ -3,6 +3,7 @@ import '../data/menu_inventory.dart';
 import '../widgets/page_header.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'notification_page.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -181,6 +182,16 @@ class _MenuPageState extends State<MenuPage> {
                 ),
               );
             },
+
+            notificationCount: 6,
+
+            onNotification: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationPage()),
+              );
+            },
+
             onLogout: _handleLogout,
           ),
 

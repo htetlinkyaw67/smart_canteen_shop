@@ -8,6 +8,7 @@ import '../widgets/overview/sales_hero_card.dart';
 import '../widgets/overview/stats_grid.dart';
 import '../widgets/overview/top_selling_card.dart';
 import '../models/sale_data.dart';
+import 'notification_page.dart';
 
 import '../data/dummy_dashboard_data.dart';
 
@@ -117,6 +118,16 @@ class _OverviewPageState extends State<OverviewPage> {
                 ),
               );
             },
+
+            notificationCount: 6,
+
+            onNotification: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationPage()),
+              );
+            },
+
             onLogout: _handleLogout,
           ),
 
@@ -133,7 +144,7 @@ class _OverviewPageState extends State<OverviewPage> {
             onAnalyticsTap: () {},
           ),
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 20),
 
           // =====================================
           // FILTER CHIPS
@@ -161,8 +172,6 @@ class _OverviewPageState extends State<OverviewPage> {
             walletPoints: DummyDashboardData.walletPoints,
             onTabChange: widget.onTabChange,
           ),
-
-          const SizedBox(height: 10),
 
           // =====================================
           // TOP SELLING ITEMS
@@ -193,7 +202,7 @@ class _OverviewPageState extends State<OverviewPage> {
   String get _filterLabel {
     switch (_selectedFilter) {
       case SalesFilter.today:
-        return "ဒီနေ့";
+        return "ယနေ့";
 
       case SalesFilter.week:
         return "လွန်ခဲ့သော ၇ ရက်က";

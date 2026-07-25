@@ -16,7 +16,7 @@ class SalesHeroCard extends StatelessWidget {
     required this.growthPercent,
     required this.orders,
     required this.customers,
-    this.filterLabel = "ဒီနေ့",
+    this.filterLabel = "ယနေ့",
     this.onAnalyticsTap,
   });
 
@@ -71,7 +71,7 @@ class SalesHeroCard extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 Text(
-                  "ပွိုင့်စုစုပေါင်း",
+                  "စုစုပေါင်းပွိုင့်",
                   style: TextStyle(
                     color: Colors.white.withOpacity(.8),
                     fontSize: 13,
@@ -81,7 +81,7 @@ class SalesHeroCard extends StatelessWidget {
                 const SizedBox(height: 6),
 
                 Text(
-                  "${revenue.toStringAsFixed(0)} pts",
+                  "${revenue.toStringAsFixed(0)} ပွိုင့်",
                   style: const TextStyle(
                     fontSize: 34,
                     fontWeight: FontWeight.w800,

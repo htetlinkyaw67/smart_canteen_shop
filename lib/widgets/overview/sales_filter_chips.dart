@@ -19,7 +19,7 @@ class SalesFilterChips extends StatelessWidget {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _chip(label: 'ဒီနေ့', filter: SalesFilter.today),
+          _chip(label: 'ယနေ့', filter: SalesFilter.today),
           const SizedBox(width: 10),
 
           _chip(label: '၇ ရက်', filter: SalesFilter.week),

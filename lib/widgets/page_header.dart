@@ -7,6 +7,8 @@ class PageHeader extends StatelessWidget {
   final bool isShopOpen;
   final ValueChanged<bool>? onStatusChanged;
   final VoidCallback? onLogout;
+  final VoidCallback? onNotification;
+  final int notificationCount;
 
   const PageHeader({
     super.key,
@@ -16,6 +18,8 @@ class PageHeader extends StatelessWidget {
     this.isShopOpen = true,
     this.onStatusChanged,
     this.onLogout,
+    this.onNotification,
+    this.notificationCount = 0,
   });
 
   @override
@@ -96,7 +100,7 @@ class PageHeader extends StatelessWidget {
 
                     // DOT SEPARATOR
                     Text(
-                      "  •  ",
+                      "   ",
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -153,6 +157,55 @@ class PageHeader extends StatelessWidget {
               ],
             ),
           ),
+
+          // NOTIFICATION BUTTON
+          if (onNotification != null)
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              onPressed: onNotification,
+              tooltip: "Notifications",
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.grey,
+                    size: 24,
+                  ),
+
+                  if (notificationCount > 0)
+                    Positioned(
+                      right: -6,
+                      top: -4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          notificationCount > 99
+                              ? '99+'
+                              : notificationCount.toString(),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
 
           // LOGOUT BUTTON
           if (onLogout != null)

@@ -78,7 +78,7 @@ class TopSellingCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _SummaryBox(
-                  title: 'ရောင်းရသော မီနူးအရေအတွက်',
+                  title: 'မီနူးအရေအတွက်',
                   value: totalSold.toString(),
                   color: Colors.green,
                 ),
@@ -89,7 +89,7 @@ class TopSellingCard extends StatelessWidget {
               Expanded(
                 child: _SummaryBox(
                   title: 'ပွိုင့်များ',
-                  value: '${totalRevenue.toStringAsFixed(0)} pts',
+                  value: '${totalRevenue.toStringAsFixed(0)} ပွိုင့်',
                   color: Colors.blue,
                 ),
               ),

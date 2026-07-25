@@ -6,6 +6,7 @@ import '../widgets/wallet/wallet_balance_card.dart';
 import '../models/shop_user.dart';
 import '../data/app_badges.dart';
 import '../widgets/page_header.dart';
+import 'notification_page.dart';
 
 class WalletPage extends StatefulWidget {
   const WalletPage({super.key});
@@ -664,6 +665,16 @@ class _WalletPageState extends State<WalletPage> {
                 ),
               );
             },
+
+            notificationCount: 6,
+
+            onNotification: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationPage()),
+              );
+            },
+
             onLogout: _handleLogout,
           ),
 

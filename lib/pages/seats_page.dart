@@ -9,6 +9,7 @@ import '../widgets/seats/seat_status_sheet.dart';
 import '../data/seat_data.dart';
 import '../data/app_badges.dart';
 import '../widgets/page_header.dart';
+import 'notification_page.dart';
 
 class SeatsPage extends StatefulWidget {
   const SeatsPage({super.key});
@@ -453,6 +454,16 @@ class _SeatsPageState extends State<SeatsPage> {
                 ),
               );
             },
+
+            notificationCount: 6,
+
+            onNotification: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationPage()),
+              );
+            },
+
             onLogout: _handleLogout,
           ),
 

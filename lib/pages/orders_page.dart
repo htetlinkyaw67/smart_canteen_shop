@@ -11,6 +11,7 @@ import '../data/menu_inventory.dart';
 import '../data/order_data.dart';
 import '../data/app_badges.dart';
 import '../widgets/page_header.dart';
+import 'notification_page.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -222,6 +223,16 @@ class _OrdersPageState extends State<OrdersPage> {
                 ),
               );
             },
+
+            notificationCount: 6,
+
+            onNotification: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationPage()),
+              );
+            },
+
             onLogout: _handleLogout,
           ),
 
