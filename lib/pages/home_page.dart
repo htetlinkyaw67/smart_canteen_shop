@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import 'overview_page.dart';
@@ -6,11 +7,11 @@ import 'menu_page.dart';
 import 'orders_page.dart';
 import 'seats_page.dart';
 import 'wallet_page.dart';
+
 import '../data/order_data.dart';
 import '../models/order_item.dart';
-import '../data/seat_data.dart';
-import '../models/seat_model.dart';
 import '../data/app_badges.dart';
+
 import '../widgets/orders/qr_scan_dialog.dart';
 import '../widgets/orders/order_match_dialog.dart';
 import '../widgets/orders/order_completed_dialog.dart';
@@ -24,66 +25,123 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int currentIndex = 0;
-
   late final List<Widget> pages;
+
+  final GlobalKey<WalletPageState> _walletPageKey =
+      GlobalKey<WalletPageState>();
 
   @override
   void initState() {
     super.initState();
-
-    AppBadges.walletCount.value = WalletPage.requests
-        .where((e) => e.status.toLowerCase() == "approved")
-        .length;
+    AppBadges.walletCount.value = 0;
 
     pages = [
-      OverviewPage(
-        onTabChange: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
-      ),
+      OverviewPage(onTabChange: _changeTab),
       const MenuPage(),
       const OrdersPage(),
       const SeatsPage(),
-      const WalletPage(),
+      WalletPage(key: _walletPageKey, onOpenScanner: _openWalletScanner),
     ];
+  }
+
+  void _changeTab(int index) {
+    if (index < 0 || index >= pages.length) {
+      return;
+    }
+
+    setState(() {
+      currentIndex = index;
+    });
+  }
+
+  void _openWalletScanner() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return QrScanDialog(
+          onScanSuccess: () {
+            Navigator.of(dialogContext).pop();
+
+            if (!mounted) {
+              return;
+            }
+
+            // Simple alternative directly in HomePage
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Wallet QR Scanned Successfully!')),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _openGlobalScanner() {
     showDialog(
       context: context,
-      builder: (_) => QrScanDialog(
-        onScanSuccess: () {
-          Navigator.pop(context);
+      builder: (dialogContext) {
+        return QrScanDialog(
+          onScanSuccess: () {
+            Navigator.of(dialogContext).pop();
 
-          final readyOrders = OrderData.orders
-              .where((e) => e.status == OrderStatus.ready)
-              .toList();
+            final readyOrders = OrderData.orders
+                .where((order) => order.status == OrderStatus.ready)
+                .toList();
 
-          if (readyOrders.isEmpty) return;
+            if (readyOrders.isEmpty) {
+              _showNoReadyOrderMessage();
+              return;
+            }
 
-          showDialog(
-            context: context,
-            builder: (_) => OrderMatchedDialog(
-              order: readyOrders.first,
-              onComplete: () {
-                Navigator.pop(context);
+            final matchedOrder = readyOrders.first;
 
-                setState(() {
-                  readyOrders.first.status = OrderStatus.completed;
-                });
+            showDialog(
+              context: context,
+              builder: (matchDialogContext) {
+                return OrderMatchedDialog(
+                  order: matchedOrder,
+                  onComplete: () {
+                    Navigator.of(matchDialogContext).pop();
 
-                showDialog(
-                  context: context,
-                  builder: (_) => const OrderCompletedDialog(),
+                    setState(() {
+                      matchedOrder.status = OrderStatus.completed;
+                    });
+
+                    showDialog(
+                      context: context,
+                      builder: (_) {
+                        return const OrderCompletedDialog();
+                      },
+                    );
+                  },
                 );
               },
-            ),
-          );
-        },
-      ),
+            );
+          },
+        );
+      },
     );
+  }
+
+  void _showNoReadyOrderMessage() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xff172B35),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          content: const Row(
+            children: [
+              Icon(Icons.info_outline_rounded, color: Colors.white),
+              SizedBox(width: 10),
+              Expanded(child: Text('No ready order was found.')),
+            ],
+          ),
+        ),
+      );
   }
 
   @override
@@ -93,52 +151,60 @@ class _HomePageState extends State<HomePage> {
       body: Stack(
         children: [
           /// PAGES
-          IndexedStack(index: currentIndex, children: pages),
+          Positioned.fill(
+            child: IndexedStack(index: currentIndex, children: pages),
+          ),
 
-          /// FROSTED GLASS NAVIGATION BAR
+          /// FROSTED-GLASS NAVIGATION BAR
           Positioned(
             left: 16,
             right: 16,
             bottom: 16,
-            child: _buildGlassNavigationBar(),
+            child: SafeArea(top: false, child: _buildGlassNavigationBar()),
           ),
 
-          /// BALANCED SCANNER BUTTON POSITION
+          /// GLOBAL ORDER SCANNER
           Positioned(
             right: 20,
-            bottom: 96, // Fine-tuned height for proper spacing above the bar
-            child: Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                color: const Color(0xff0F7B94),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xff0F7B94).withOpacity(0.4),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                onPressed: _openGlobalScanner,
-                icon: const Icon(
-                  Icons.qr_code_scanner_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
+            bottom: 96,
+            child: SafeArea(top: false, child: _buildScannerButton()),
           ),
         ],
       ),
     );
   }
 
-  /// FROSTED GLASS NAVIGATION BAR
+  Widget _buildScannerButton() {
+    return Tooltip(
+      message: 'Scan order QR',
+      child: Container(
+        width: 54,
+        height: 54,
+        decoration: BoxDecoration(
+          color: const Color(0xff0F7B94),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xff0F7B94).withValues(alpha: 0.40),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: IconButton(
+          padding: EdgeInsets.zero,
+          onPressed: _openGlobalScanner,
+          icon: const Icon(
+            Icons.qr_code_scanner_rounded,
+            color: Colors.white,
+            size: 24,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildGlassNavigationBar() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(30),
@@ -147,55 +213,69 @@ class _HomePageState extends State<HomePage> {
         child: Container(
           height: 66,
           decoration: BoxDecoration(
-            color: const Color(0xFF0F7B94).withOpacity(0.85),
+            color: const Color(0xff0F7B94).withValues(alpha: 0.90),
             borderRadius: BorderRadius.circular(30),
             border: Border.all(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.20),
               width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.12),
+                color: Colors.black.withValues(alpha: 0.12),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
             ],
           ),
-          child: ValueListenableBuilder(
+          child: ValueListenableBuilder<int>(
             valueListenable: AppBadges.ordersCount,
             builder: (context, ordersCount, _) {
-              return ValueListenableBuilder(
+              return ValueListenableBuilder<int>(
                 valueListenable: AppBadges.seatsCount,
-                builder: (context, seatsCount, _) {
-                  return ValueListenableBuilder(
+                builder: (context, tableCount, _) {
+                  return ValueListenableBuilder<int>(
                     valueListenable: AppBadges.walletCount,
                     builder: (context, walletCount, _) {
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildBottomNavItem(
-                            Icons.show_chart,
-                            "သုံးသပ်ချက်",
-                            0,
+                          Expanded(
+                            child: _buildBottomNavItem(
+                              icon: Icons.dashboard_rounded,
+                              label: 'သုံးသပ်ချက်',
+                              index: 0,
+                            ),
                           ),
-                          _buildBottomNavItem(Icons.restaurant, "မီနူး", 1),
-                          _buildBottomNavItem(
-                            Icons.inventory_2_outlined,
-                            "အော်ဒါ",
-                            2,
-                            badgeCount: ordersCount,
+                          Expanded(
+                            child: _buildBottomNavItem(
+                              icon: Icons.restaurant_menu_rounded,
+                              label: 'မီနူး',
+                              index: 1,
+                            ),
                           ),
-                          _buildBottomNavItem(
-                            Icons.event_seat_outlined,
-                            "ထိုင်ခုံ",
-                            3,
-                            badgeCount: seatsCount,
+                          Expanded(
+                            child: _buildBottomNavItem(
+                              icon: Icons.inventory_2_outlined,
+                              label: 'အော်ဒါ',
+                              index: 2,
+                              badgeCount: ordersCount,
+                            ),
                           ),
-                          _buildBottomNavItem(
-                            Icons.account_balance_wallet_outlined,
-                            "ပိုက်ဆံအိတ်",
-                            4,
-                            badgeCount: walletCount,
+                          Expanded(
+                            child: _buildBottomNavItem(
+                              icon: Icons.table_restaurant_rounded,
+                              label: 'စားပွဲ',
+                              index: 3,
+                              badgeCount: tableCount,
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildBottomNavItem(
+                              icon: Icons.account_balance_wallet_outlined,
+                              label: 'ပိုက်ဆံအိတ်',
+                              index: 4,
+                              badgeCount: walletCount,
+                            ),
                           ),
                         ],
                       );
@@ -210,54 +290,80 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// NAV ITEM BUILDER
-  Widget _buildBottomNavItem(
-    IconData icon,
-    String label,
-    int index, {
+  Widget _buildBottomNavItem({
+    required IconData icon,
+    required String label,
+    required int index,
     int badgeCount = 0,
   }) {
-    final isActive = currentIndex == index;
-    final color = isActive ? Colors.white : Colors.white.withOpacity(0.5);
+    final bool isActive = currentIndex == index;
 
-    Widget iconWidget = Icon(icon, color: color, size: 20);
+    final Color itemColor = isActive
+        ? Colors.white
+        : Colors.white.withValues(alpha: 0.58);
+
+    Widget iconWidget = Icon(icon, color: itemColor, size: 20);
 
     if (badgeCount > 0) {
       iconWidget = Badge(
         isLabelVisible: true,
-        label: Text(badgeCount.toString()),
+        backgroundColor: const Color(0xffEF5D68),
+        textColor: Colors.white,
+        smallSize: 8,
+        largeSize: 17,
+        padding: const EdgeInsets.symmetric(horizontal: 5),
+        label: Text(
+          badgeCount > 99 ? '99+' : badgeCount.toString(),
+          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800),
+        ),
         child: iconWidget,
       );
     }
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          currentIndex = index;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive ? Colors.white.withOpacity(0.18) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            iconWidget,
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 9,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+    return Semantics(
+      button: true,
+      selected: isActive,
+      label: label,
+      child: InkWell(
+        onTap: () {
+          _changeTab(index);
+        },
+        borderRadius: BorderRadius.circular(17),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+          margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
+          decoration: BoxDecoration(
+            color: isActive
+                ? Colors.white.withValues(alpha: 0.18)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(17),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedScale(
+                duration: const Duration(milliseconds: 220),
+                scale: isActive ? 1.08 : 1,
+                child: iconWidget,
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: itemColor,
+                  fontSize: 9,
+                  height: 1,
+                  fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

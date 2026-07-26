@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-
 import '../../models/seat_model.dart';
 
 class SeatLayoutCard extends StatelessWidget {
   final List<SeatModel> seats;
-  final Function(SeatModel) onSeatTap;
-
+  final ValueChanged<SeatModel> onSeatTap;
   final int columns;
 
   const SeatLayoutCard({
@@ -19,142 +17,206 @@ class SeatLayoutCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0xffE5EDF0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 18,
+            offset: const Offset(0, 7),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Table Layout',
+                      style: TextStyle(
+                        color: Color(0xff172B35),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'Each table has 4 seats • Tap a table to update its status',
+                      style: TextStyle(color: Color(0xff839198), fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.grid_view_rounded, color: Color(0xff0F7B94)),
+            ],
+          ),
           const SizedBox(height: 18),
 
           Container(
-            width: 180,
-            height: 6,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(999),
+              color: const Color(0xffF6F9FA),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.point_of_sale_outlined,
+                  size: 18,
+                  color: Color(0xff7D8B92),
+                ),
+                SizedBox(width: 7),
+                Text(
+                  'COUNTER',
+                  style: TextStyle(
+                    color: Color(0xff7D8B92),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
             ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 1),
 
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.point_of_sale_outlined, size: 18, color: Colors.grey),
-              SizedBox(width: 6),
-              Text(
-                "COUNTER",
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              width: columns * 84,
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: seats.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1,
-                ),
-                itemBuilder: (_, index) {
-                  return _seatTile(seats[index]);
-                },
-              ),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: seats.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              crossAxisSpacing: 9,
+              mainAxisSpacing: 10,
+              childAspectRatio: 0.92,
             ),
+            itemBuilder: (_, index) {
+              return _tableTile(seats[index]);
+            },
           ),
 
-          const SizedBox(height: 24),
-
-          Divider(color: Colors.grey.shade200),
-
+          const SizedBox(height: 22),
+          Divider(height: 1, color: Colors.grey.shade200),
           const SizedBox(height: 18),
 
           Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 18,
+            alignment: WrapAlignment.start,
+            spacing: 14,
             runSpacing: 12,
             children: [
-              _legend(Colors.white, Colors.grey.shade400, "Available"),
-              _legend(const Color(0xFFFFECEC), Colors.redAccent, "Occupied"),
-              _legend(const Color(0xFFFFF5DD), Colors.amber, "Reserved"),
-              _legend(const Color(0xFFF2F2F2), Colors.grey, "Disabled"),
+              _legend(const Color(0xff25B95B), 'Available'),
+              _legend(const Color(0xffF05D68), 'Occupied'),
+              _legend(const Color(0xffEFB62F), 'Reserved'),
+              _legend(const Color(0xff899399), 'Disabled'),
             ],
-          ),
-
-          const SizedBox(height: 16),
-
-          const Text(
-            "Tap any seat to change status",
-            style: TextStyle(fontSize: 13, color: Colors.grey),
           ),
         ],
       ),
     );
   }
 
-  Widget _seatTile(SeatModel seat) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () => onSeatTap(seat),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          color: seat.backgroundColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(seat.icon, size: 18, color: seat.statusColor),
+  Widget _tableTile(SeatModel table) {
+    final color = table.statusColor;
 
-            const SizedBox(height: 6),
-
-            Text(
-              seat.id,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onSeatTap(table),
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: color.withValues(alpha: 0.42),
+              width: 1.2,
             ),
-          ],
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                top: 9,
+                right: 9,
+                child: Container(
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.table_restaurant_rounded,
+                      size: 25,
+                      color: color,
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      table.id,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xff172B35),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      table.statusLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _legend(Color bg, Color border, String title) {
+  Widget _legend(Color color, String title) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 18,
-          height: 18,
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: border),
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xff60717A),
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
         ),
-
-        const SizedBox(width: 6),
-
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
       ],
     );
   }

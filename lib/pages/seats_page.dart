@@ -65,8 +65,10 @@ class _SeatsPageState extends State<SeatsPage> {
     );
   }
 
+  static const int seatsPerTable = 4;
+
   int rows = 4;
-  int columns = 8;
+  int columns = 4;
 
   @override
   void initState() {
@@ -81,188 +83,488 @@ class _SeatsPageState extends State<SeatsPage> {
   void _generateSeats() {
     seats.clear();
 
-    for (int r = 0; r < rows; r++) {
-      for (int c = 0; c < columns; c++) {
-        seats.add(
-          SeatModel(
-            id: '${String.fromCharCode(65 + r)}${c + 1}',
-            row: r,
-            column: c,
-          ),
-        );
-      }
-    }
+    final totalTables = rows * columns;
 
-    setState(() {});
+    for (int index = 0; index < totalTables; index++) {
+      seats.add(
+        SeatModel(
+          id: 'T${index + 1}',
+          row: index ~/ columns,
+          column: index % columns,
+        ),
+      );
+    }
   }
 
-  void _showLayoutManager() {
-    final rowController = TextEditingController(text: rows.toString());
+  void _updateSeatBadge() {
+    AppBadges.seatsCount.value = seats
+        .where((seat) => seat.status == SeatStatus.reserved)
+        .length;
+  }
 
-    final columnController = TextEditingController(text: columns.toString());
+  String _generateNextTableName() {
+    int tableNumber = 1;
 
-    showDialog(
+    while (seats.any(
+      (table) => table.id.trim().toLowerCase() == 'T$tableNumber'.toLowerCase(),
+    )) {
+      tableNumber++;
+    }
+
+    return 'T$tableNumber';
+  }
+
+  void _showAddTableSheet() {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController(
+      text: _generateNextTableName(),
+    );
+
+    SeatStatus selectedStatus = SeatStatus.available;
+
+    showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          contentPadding: EdgeInsets.zero,
-          content: SizedBox(
-            width: 380,
-            child: SingleChildScrollView(
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 12,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: SafeArea(
+                top: false,
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Center(
+                          child: Container(
+                            width: 44,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: const Color(0xffD9E1E5),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 22),
+
+                        Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: const Color(0xffE8F6F8),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Icon(
+                                Icons.add_circle_outline_rounded,
+                                color: Color(0xff0F7B94),
+                                size: 27,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Add New Table',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xff172B35),
+                                    ),
+                                  ),
+                                  SizedBox(height: 3),
+                                  Text(
+                                    'Each table contains 4 seats',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Color(0xff7B8A92),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                Navigator.pop(sheetContext);
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 26),
+
                         const Text(
-                          "Reshape seat layout",
+                          'Table name',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
+                            color: Color(0xff34454D),
                           ),
                         ),
 
-                        const Spacer(),
+                        const SizedBox(height: 9),
 
-                        IconButton(
-                          onPressed: () {
-                            Navigator.pop(context);
+                        TextFormField(
+                          controller: nameController,
+                          autofocus: true,
+                          textCapitalization: TextCapitalization.characters,
+                          decoration: InputDecoration(
+                            hintText: 'Example: T1',
+                            prefixIcon: const Icon(
+                              Icons.event_seat_outlined,
+                              color: Color(0xff0F7B94),
+                            ),
+                            filled: true,
+                            fillColor: const Color(0xffF7FAFB),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 17,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(
+                                color: Color(0xffE4ECEF),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(
+                                color: Color(0xff0F7B94),
+                                width: 1.8,
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(
+                                color: Colors.redAccent,
+                                width: 1.8,
+                              ),
+                            ),
+                          ),
+                          validator: (value) {
+                            final seatName = value?.trim() ?? '';
+
+                            if (seatName.isEmpty) {
+                              return 'Please enter a table name';
+                            }
+
+                            final alreadyExists = seats.any(
+                              (seat) =>
+                                  seat.id.trim().toLowerCase() ==
+                                  seatName.toLowerCase(),
+                            );
+
+                            if (alreadyExists) {
+                              return 'A table with this name already exists';
+                            }
+
+                            return null;
                           },
-                          icon: const Icon(Icons.close),
                         ),
-                      ],
-                    ),
 
-                    const SizedBox(height: 20),
+                        const SizedBox(height: 24),
 
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xffFFF8EC),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xffF2DFC2)),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.info_outline, color: Colors.brown),
-
-                          SizedBox(width: 12),
-
-                          Expanded(
-                            child: Text("This will rebuild your seat grid."),
+                        const Text(
+                          'Initial status',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xff34454D),
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
 
-                    const SizedBox(height: 24),
+                        const SizedBox(height: 12),
 
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: rowController,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: "Rows",
-                              border: OutlineInputBorder(),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            _addSeatStatusOption(
+                              status: SeatStatus.available,
+                              selectedStatus: selectedStatus,
+                              label: 'Available',
+                              icon: Icons.check_circle_outline_rounded,
+                              color: const Color(0xff26B85A),
+                              onTap: () {
+                                setSheetState(() {
+                                  selectedStatus = SeatStatus.available;
+                                });
+                              },
+                            ),
+                            _addSeatStatusOption(
+                              status: SeatStatus.occupied,
+                              selectedStatus: selectedStatus,
+                              label: 'Occupied',
+                              icon: Icons.people_outline_rounded,
+                              color: Colors.redAccent,
+                              onTap: () {
+                                setSheetState(() {
+                                  selectedStatus = SeatStatus.occupied;
+                                });
+                              },
+                            ),
+                            _addSeatStatusOption(
+                              status: SeatStatus.reserved,
+                              selectedStatus: selectedStatus,
+                              label: 'Reserved',
+                              icon: Icons.schedule_rounded,
+                              color: Colors.amber.shade700,
+                              onTap: () {
+                                setSheetState(() {
+                                  selectedStatus = SeatStatus.reserved;
+                                });
+                              },
+                            ),
+                            _addSeatStatusOption(
+                              status: SeatStatus.disabled,
+                              selectedStatus: selectedStatus,
+                              label: 'Disabled',
+                              icon: Icons.block_rounded,
+                              color: Colors.grey,
+                              onTap: () {
+                                setSheetState(() {
+                                  selectedStatus = SeatStatus.disabled;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xffF7FAFB),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xffE5ECEF)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.info_outline_rounded,
+                                color: Color(0xff0F7B94),
+                                size: 21,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'This table will add 4 seats. You currently have '
+                                  '${seats.length} tables and ${seats.length * seatsPerTable} seats.',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xff60727B),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 22),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              elevation: 0,
+                              backgroundColor: const Color(0xff0F7B94),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            onPressed: () {
+                              final isValid =
+                                  formKey.currentState?.validate() ?? false;
+
+                              if (!isValid) {
+                                return;
+                              }
+
+                              final tableName = nameController.text.trim();
+                              final newIndex = seats.length;
+
+                              final newTable = SeatModel(
+                                id: tableName,
+                                row: newIndex ~/ columns,
+                                column: newIndex % columns,
+                                status: selectedStatus,
+                              );
+
+                              // Close the bottom sheet before rebuilding the page.
+                              Navigator.of(sheetContext).pop();
+
+                              if (!mounted) {
+                                return;
+                              }
+
+                              setState(() {
+                                seats.add(newTable);
+                              });
+
+                              _updateSeatBadge();
+
+                              ScaffoldMessenger.of(context)
+                                ..hideCurrentSnackBar()
+                                ..showSnackBar(
+                                  SnackBar(
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: const Color(0xff172B35),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    content: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.check_circle_rounded,
+                                          color: Color(0xff4CD778),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            '${newTable.id} added with 4 seats',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                            },
+                            icon: const Icon(Icons.add_rounded),
+                            label: const Text(
+                              'Add Table',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
-
-                        const SizedBox(width: 12),
-
-                        Expanded(
-                          child: TextFormField(
-                            controller: columnController,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: "Columns",
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
-
-                    const SizedBox(height: 20),
-
-                    Text(
-                      "Total seats: ${rows * columns}",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff0F7B94),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        onPressed: () {
-                          rows = int.tryParse(rowController.text) ?? 4;
-
-                          columns = int.tryParse(columnController.text) ?? 8;
-
-                          _generateSeats();
-
-                          Navigator.pop(context);
-                        },
-                        icon: const Icon(Icons.save),
-                        label: const Text("Apply Layout"),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
   }
 
-  int get availableCount =>
-      seats.where((e) => e.status == SeatStatus.available).length;
+  Widget _addSeatStatusOption({
+    required SeatStatus status,
+    required SeatStatus selectedStatus,
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    final isSelected = selectedStatus == status;
 
-  int get occupiedCount =>
-      seats.where((e) => e.status == SeatStatus.occupied).length;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: 0.12)
+              : const Color(0xffF7FAFB),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? color : const Color(0xffE3EAED),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 19,
+              color: isSelected ? color : Colors.grey.shade600,
+            ),
+            const SizedBox(width: 7),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isSelected ? color : const Color(0xff51636C),
+              ),
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 7),
+              Icon(Icons.check_circle_rounded, size: 17, color: color),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 
-  int get reservedCount =>
-      seats.where((e) => e.status == SeatStatus.reserved).length;
+  int get totalTableCount => seats.length;
 
-  int get disabledCount =>
-      seats.where((e) => e.status == SeatStatus.disabled).length;
+  int get availableTableCount {
+    return seats.where((table) => table.status == SeatStatus.available).length;
+  }
+
+  int get occupiedTableCount {
+    return seats.where((table) => table.status == SeatStatus.occupied).length;
+  }
+
+  int get reservedTableCount {
+    return seats.where((table) => table.status == SeatStatus.reserved).length;
+  }
+
+  int get disabledTableCount {
+    return seats.where((table) => table.status == SeatStatus.disabled).length;
+  }
 
   double get occupancyPercent {
-    final usableSeats = seats
-        .where((e) => e.status != SeatStatus.disabled)
-        .length;
+    final usableTables = totalTableCount - disabledTableCount;
 
-    if (usableSeats == 0) {
+    if (usableTables <= 0) {
       return 0;
     }
 
-    return occupiedCount / usableSeats;
+    return occupiedTableCount / usableTables;
   }
 
-  void _showSeatEditor(SeatModel seat) {
+  void _showTableEditor(SeatModel table) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -271,71 +573,71 @@ class _SeatsPageState extends State<SeatsPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (_) => SeatStatusSheet(
-        seat: seat,
-
+        seat: table,
         onStatusChanged: (status) {
           setState(() {
-            seat.status = status;
+            table.status = status;
           });
 
-          AppBadges.seatsCount.value = seats
-              .where((e) => e.status == SeatStatus.reserved)
-              .length;
+          _updateSeatBadge();
         },
-
         onRename: () {
-          _renameSpecificSeat(seat);
+          _renameSpecificTable(table);
         },
-
         onDelete: () {
-          _deleteSpecificSeat(seat);
+          _deleteSpecificTable(table);
         },
       ),
     );
   }
 
-  void _resetAllSeats() {
+  void _resetAllTables() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text(
-          "Reset Seats",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-        ),
-        content: const Text(
-          'Are you sure you want to set all seats to Available?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+          title: const Text(
+            'Reset Tables',
+            style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800),
+          ),
+          content: const Text('Set every table status back to Available?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Cancel'),
             ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: const Color(0xff0F7B94),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pop(dialogContext);
 
-            onPressed: () {
-              Navigator.pop(context);
+                setState(() {
+                  for (final table in seats) {
+                    table.status = SeatStatus.available;
+                  }
+                });
 
-              setState(() {
-                for (final seat in seats) {
-                  seat.status = SeatStatus.available;
-                }
-              });
-            },
-            child: const Text('Reset'),
-          ),
-        ],
-      ),
+                _updateSeatBadge();
+              },
+              child: const Text('Reset Tables'),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  void _renameSpecificSeat(SeatModel seat) {
+  void _renameSpecificTable(SeatModel seat) {
     final controller = TextEditingController(text: seat.id);
 
     showDialog(
@@ -343,15 +645,15 @@ class _SeatsPageState extends State<SeatsPage> {
       builder: (_) => AlertDialog(
         backgroundColor: Colors.white,
         title: const Text(
-          "Rename Seat",
+          "Rename Table",
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
         ),
 
         content: TextFormField(
           controller: controller,
           decoration: InputDecoration(
-            labelText: "Seat Name",
-            hintText: "Enter seat name",
+            labelText: "Table Name",
+            hintText: "Enter table name",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -389,16 +691,18 @@ class _SeatsPageState extends State<SeatsPage> {
     );
   }
 
-  void _deleteSpecificSeat(SeatModel seat) {
+  void _deleteSpecificTable(SeatModel seat) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: Colors.white,
         title: const Text(
-          "Delete Seat",
+          "Delete Table",
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
         ),
-        content: Text('Delete ${seat.id}?'),
+        content: Text(
+          'Delete ${seat.id}? This will remove all 4 seats from this table.',
+        ),
         actions: [
           TextButton(
             onPressed: () {
@@ -414,9 +718,17 @@ class _SeatsPageState extends State<SeatsPage> {
             onPressed: () {
               setState(() {
                 seats.remove(seat);
+                _updateSeatBadge();
               });
 
               Navigator.pop(context);
+
+              ScaffoldMessenger.of(this.context).showSnackBar(
+                SnackBar(
+                  behavior: SnackBarBehavior.floating,
+                  content: Text('${seat.id} and its 4 seats were deleted'),
+                ),
+              );
             },
             child: const Text('Delete'),
           ),
@@ -436,8 +748,8 @@ class _SeatsPageState extends State<SeatsPage> {
 
           PageHeader(
             title: "Moe's Burmese Kitchen",
-            subtitle: "Manage reservations",
-            icon: Icons.event_seat,
+            subtitle: "Manage tables",
+            icon: Icons.table_restaurant_rounded,
             isShopOpen: _isShopOpen,
             onStatusChanged: (isOpen) {
               setState(() {
@@ -469,8 +781,8 @@ class _SeatsPageState extends State<SeatsPage> {
 
           /// HERO CARD
           SeatHeroCard(
-            availableSeats: availableCount,
-            totalSeats: seats.length,
+            availableTables: availableTableCount,
+            totalTables: totalTableCount,
             occupancyPercent: occupancyPercent,
           ),
 
@@ -481,54 +793,47 @@ class _SeatsPageState extends State<SeatsPage> {
             children: [
               Expanded(
                 child: SeatKpiCard(
-                  title: "Available",
-                  value: availableCount.toString(),
-                  icon: Icons.check_circle,
-                  color: const Color(0xff4CD778),
+                  title: 'Available Tables',
+                  value: availableTableCount.toString(),
+                  icon: Icons.check_circle_rounded,
+                  color: const Color(0xff25B95B),
                 ),
               ),
-
-              const SizedBox(width: 10),
-
+              const SizedBox(width: 12),
               Expanded(
                 child: SeatKpiCard(
-                  title: "Occupied",
-                  value: occupiedCount.toString(),
-                  icon: Icons.people,
-                  color: Colors.redAccent,
+                  title: 'Occupied Tables',
+                  value: occupiedTableCount.toString(),
+                  icon: Icons.table_bar_rounded,
+                  color: const Color(0xffF05D68),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 10),
-
-          /// KPI ROW 2
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: SeatKpiCard(
-                  title: "Reserved",
-                  value: reservedCount.toString(),
-                  icon: Icons.schedule,
-                  color: Colors.amber,
+                  title: 'Reserved Tables',
+                  value: reservedTableCount.toString(),
+                  icon: Icons.schedule_rounded,
+                  color: const Color(0xffEFB62F),
                 ),
               ),
-
-              const SizedBox(width: 10),
-
+              const SizedBox(width: 12),
               Expanded(
                 child: SeatKpiCard(
-                  title: "Disabled",
-                  value: disabledCount.toString(),
-                  icon: Icons.block,
-                  color: Colors.grey,
+                  title: 'Disabled Tables',
+                  value: disabledTableCount.toString(),
+                  icon: Icons.block_rounded,
+                  color: const Color(0xff899399),
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
 
           /// ACTIONS
           Row(
@@ -536,7 +841,7 @@ class _SeatsPageState extends State<SeatsPage> {
               Expanded(
                 child: InkWell(
                   borderRadius: BorderRadius.circular(28),
-                  onTap: _resetAllSeats,
+                  onTap: _resetAllTables,
                   child: Container(
                     height: 54,
                     decoration: BoxDecoration(
@@ -564,22 +869,36 @@ class _SeatsPageState extends State<SeatsPage> {
               Expanded(
                 child: InkWell(
                   borderRadius: BorderRadius.circular(28),
-                  onTap: _showLayoutManager,
+                  onTap: _showAddTableSheet,
                   child: Container(
                     height: 54,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xff0F7B94),
                       borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: Colors.grey.shade200),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xff0F7B94,
+                          ).withValues(alpha: 0.20),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.grid_view_rounded, color: Color(0xff0F7B94)),
+                        Icon(
+                          Icons.table_restaurant_rounded,
+                          color: Colors.white,
+                        ),
                         SizedBox(width: 8),
                         Text(
-                          "Layout ($rows x $columns)",
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                          "Add Table",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ],
                     ),
@@ -589,14 +908,14 @@ class _SeatsPageState extends State<SeatsPage> {
             ],
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 14),
 
           /// LAYOUT
           SeatLayoutCard(
             seats: seats,
-            columns: columns,
-            onSeatTap: (seat) {
-              _showSeatEditor(seat);
+            columns: 4,
+            onSeatTap: (table) {
+              _showTableEditor(table);
             },
           ),
 

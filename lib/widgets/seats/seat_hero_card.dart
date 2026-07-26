@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 
 class SeatHeroCard extends StatelessWidget {
-  final int availableSeats;
-  final int totalSeats;
+  final int availableTables;
+  final int totalTables;
   final double occupancyPercent;
 
   const SeatHeroCard({
     super.key,
-    required this.availableSeats,
-    required this.totalSeats,
+    required this.availableTables,
+    required this.totalTables,
     required this.occupancyPercent,
   });
 
   @override
   Widget build(BuildContext context) {
+    final occupiedPercent = (occupancyPercent * 100).clamp(0, 100).round();
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         gradient: const LinearGradient(
@@ -24,6 +26,13 @@ class SeatHeroCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [Color(0xff0F7B94), Color(0xff18A3C3)],
         ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xff0F7B94).withValues(alpha: 0.22),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,66 +40,84 @@ class SeatHeroCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.white24,
-                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(Icons.event_seat, color: Colors.white),
-              ),
-              SizedBox(width: 12),
-              Text(
-                "Seat Management",
-                style: TextStyle(
+                child: const Icon(
+                  Icons.table_restaurant_rounded,
                   color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Text(
+                  'Table Management',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 24),
-
-          Text(
-            "$availableSeats / $totalSeats Available",
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-            ),
+          const SizedBox(height: 26),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$availableTables',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 38,
+                  height: 1,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text(
+                  'of $totalTables tables available',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.90),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-
-          const SizedBox(height: 8),
-
+          const SizedBox(height: 12),
           Text(
-            "Monitor and manage seating status in real time",
+            'Monitor reservations and table availability',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.85),
+              color: Colors.white.withValues(alpha: 0.82),
               fontSize: 14,
+              height: 1.4,
             ),
           ),
-
-          const SizedBox(height: 20),
-
+          const SizedBox(height: 22),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(
               minHeight: 8,
-              value: occupancyPercent,
-              backgroundColor: Colors.white.withValues(alpha: 0.25),
+              value: occupancyPercent.clamp(0.0, 1.0),
+              backgroundColor: Colors.white.withValues(alpha: 0.24),
               color: Colors.white,
             ),
           ),
-
           const SizedBox(height: 10),
-
           Text(
-            "${(occupancyPercent * 100).toStringAsFixed(0)}% Occupancy",
+            '$occupiedPercent% table occupancy',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
-              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.92),
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

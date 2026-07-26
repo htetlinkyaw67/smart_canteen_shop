@@ -17,40 +17,57 @@ class SeatKpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: const BoxConstraints(minHeight: 128),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xffE8EFF2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 22),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(icon, color: color, size: 21),
+              ),
+              const Spacer(),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Color(0xff172B35),
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
+            ],
           ),
-
-          const SizedBox(height: 16),
-
-          Text(
-            value,
-            style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w700),
-          ),
-
-          const SizedBox(height: 6),
-
+          const SizedBox(height: 18),
           Text(
             title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              color: Color(0xff65767E),
+              fontSize: 13,
+              height: 1.25,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

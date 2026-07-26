@@ -1,46 +1,98 @@
 import 'package:flutter/material.dart';
 
-import '../models/exchange_request.dart';
-import '../widgets/wallet/exchange_request_tile.dart';
+import '../models/wallet_transaction.dart';
+import '../widgets/wallet/wallet_action_button.dart';
 import '../widgets/wallet/wallet_balance_card.dart';
-import '../models/shop_user.dart';
-import '../data/app_badges.dart';
+import '../widgets/wallet/transaction_tile.dart';
 import '../widgets/page_header.dart';
+
 import 'notification_page.dart';
+import 'transaction_history_page.dart';
+import 'my_qr_page.dart';
+import 'transfer_page.dart';
 
 class WalletPage extends StatefulWidget {
-  const WalletPage({super.key});
+  final VoidCallback onOpenScanner;
 
-  static final List<ExchangeRequest> requests = [
-    ExchangeRequest(
-      points: 100,
-      amount: 800,
-      status: "Pending",
-      date: "2026-06-18 13:23",
+  const WalletPage({super.key, required this.onOpenScanner});
+
+  @override
+  State<WalletPage> createState() => WalletPageState();
+}
+
+class WalletPageState extends State<WalletPage> {
+  bool _isShopOpen = true;
+
+  int walletBalance = 1600;
+
+  final List<WalletTransaction> transactions = [
+    WalletTransaction(
+      id: 'TXN-001',
+      title: 'Points received',
+      subtitle: 'Order #1048',
+      points: 500,
+      type: WalletTransactionType.received,
+      createdAt: DateTime(2026, 7, 26, 18, 30),
     ),
-    ExchangeRequest(
-      points: 100,
-      amount: 800,
-      status: "Approved",
-      date: "2026-06-18 08:00",
-    ),
-    ExchangeRequest(
+    WalletTransaction(
+      id: 'TXN-002',
+      title: 'Points transferred',
+      subtitle: 'Student wallet',
       points: 200,
-      amount: 1600,
-      status: "Paid",
-      date: "2026-06-17 15:23",
+      type: WalletTransactionType.sent,
+      createdAt: DateTime(2026, 7, 26, 15, 20),
+    ),
+    WalletTransaction(
+      id: 'TXN-003',
+      title: 'Payment received',
+      subtitle: 'Order #1047',
+      points: 350,
+      type: WalletTransactionType.received,
+      createdAt: DateTime(2026, 7, 25, 13, 10),
+    ),
+    WalletTransaction(
+      id: 'TXN-004',
+      title: 'Points transferred',
+      subtitle: 'Student wallet',
+      points: 100,
+      type: WalletTransactionType.sent,
+      createdAt: DateTime(2026, 7, 24, 17, 45),
+    ),
+    WalletTransaction(
+      id: 'TXN-005',
+      title: 'Points received',
+      subtitle: 'Order #1046',
+      points: 250,
+      type: WalletTransactionType.received,
+      createdAt: DateTime(2026, 7, 24, 11, 15),
+    ),
+    WalletTransaction(
+      id: 'TXN-006',
+      title: 'Points transferred',
+      subtitle: 'Student wallet',
+      points: 50,
+      type: WalletTransactionType.sent,
+      createdAt: DateTime(2026, 7, 23, 9, 30),
+    ),
+    WalletTransaction(
+      id: 'TXN-007',
+      title: 'Payment received',
+      subtitle: 'Order #1045',
+      points: 400,
+      type: WalletTransactionType.received,
+      createdAt: DateTime(2026, 7, 22, 14, 10),
     ),
   ];
 
-  @override
-  State<WalletPage> createState() => _WalletPageState();
-}
+  List<WalletTransaction> get recentTransactions {
+    final sortedTransactions = [...transactions];
 
-class _WalletPageState extends State<WalletPage> {
-  String selectedFilter = "All";
-  DateTime? selectedDate;
+    sortedTransactions.sort((first, second) {
+      return second.createdAt.compareTo(first.createdAt);
+    });
 
-  bool _isShopOpen = true; // SHOP STATUS STATE
+    return sortedTransactions.take(5).toList();
+  }
 
   void _handleLogout() {
     showDialog(
@@ -48,35 +100,36 @@ class _WalletPageState extends State<WalletPage> {
       barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text("ထွက်မည်"),
-          content: const Text("ထွက်မယ်ဆိုတာ သေချာပါသလား။"),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+          ),
+          title: const Text(
+            'ထွက်မည်',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+          content: const Text('ထွက်မယ်ဆိုတာ သေချာပါသလား။'),
           actions: [
-            // Cancel logout
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
-              child: const Text("မလုပ်တော့ပါ"),
+              child: const Text('မလုပ်တော့ပါ'),
             ),
-
-            // Confirm logout
             ElevatedButton(
               style: ElevatedButton.styleFrom(
+                elevation: 0,
                 backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
               ),
               onPressed: () {
-                // Close confirmation dialog first
                 Navigator.of(dialogContext).pop();
 
-                // Go to LoginPage
                 Navigator.of(
                   context,
                 ).pushNamedAndRemoveUntil('/login', (route) => false);
               },
-              child: const Text(
-                "ထွက်မည်",
-                style: TextStyle(color: Colors.white),
-              ),
+              child: const Text('ထွက်မည်'),
             ),
           ],
         );
@@ -84,549 +137,89 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-
-    AppBadges.walletCount.value = WalletPage.requests
-        .where((e) => e.status.toLowerCase() == "approved")
-        .length;
-  }
-
-  int get pendingRequestCount {
-    return WalletPage.requests
-        .where((request) => request.status.toLowerCase() == "pending")
-        .length;
-  }
-
-  int get pendingPoints {
-    return WalletPage.requests
-        .where((request) => request.status.toLowerCase() == "pending")
-        .fold(0, (sum, request) => sum + request.points);
-  }
-
-  List<ExchangeRequest> get filteredRequests {
-    var result = WalletPage.requests;
-
-    if (selectedFilter != "All") {
-      result = result
-          .where(
-            (request) =>
-                request.status.toLowerCase() == selectedFilter.toLowerCase(),
-          )
-          .toList();
-    }
-
-    if (selectedDate != null) {
-      final dateString = selectedDate!.toString().substring(0, 10);
-
-      result = result
-          .where((request) => request.date.startsWith(dateString))
-          .toList();
-    }
-
-    return result;
-  }
-
-  void _showExchangeSheet(BuildContext context) {
-    final pointsController = TextEditingController(text: "100");
-
+  void showWalletScanResult() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    /// HEADER
-                    Row(
-                      children: [
-                        const Text(
-                          "Exchange points for cash",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-
-                        const Spacer(),
-
-                        IconButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// AVAILABLE CARD
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xffF8F8F8),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Available",
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(height: 6),
-                                Text(
-                                  "1,600 pts",
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                "Rate",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              SizedBox(height: 6),
-                              Text(
-                                "1 pt = 8 Ks",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    /// POINTS
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Points to exchange",
-                        style: TextStyle(color: Colors.grey, fontSize: 14),
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    TextField(
-                      controller: pointsController,
-                      keyboardType: TextInputType.number,
-                      onChanged: (_) {
-                        setModalState(() {});
-                      },
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(
-                          Icons.currency_exchange,
-                          color: Color(0xff0F7B94),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// RECEIVE AMOUNT
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xffEAF7FA),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xffB8DDE6)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Text(
-                            "You will receive",
-                            style: TextStyle(
-                              color: Color(0xff0F7B94),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-
-                          const Spacer(),
-
-                          Text(
-                            "${(int.tryParse(pointsController.text) ?? 0) * 8} Ks",
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// NOTE
-                    TextField(
-                      maxLines: 1,
-                      decoration: InputDecoration(
-                        hintText: "Optional note...",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// INFO
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xffEAF7FA),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xffB8DDE6)),
-                      ),
-                      child: const Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Icons.info_outline, color: Color(0xff0F7B94)),
-
-                          SizedBox(width: 10),
-
-                          Expanded(
-                            child: Text(
-                              "Cash can be collected after approval. Verify your PIN in the next step.",
-                              style: TextStyle(height: 1.4),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    /// CONTINUE BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff0F7B94),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        onPressed: () {
-                          final points =
-                              int.tryParse(pointsController.text) ?? 0;
-
-                          final amount = points * 8;
-
-                          Navigator.pop(context);
-
-                          Future.delayed(const Duration(milliseconds: 200), () {
-                            _showPinDialog(context, points, amount);
-                          });
-                        },
-                        icon: const Icon(Icons.lock_outline),
-                        label: const Text(
-                          "Continue",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showPinDialog(BuildContext context, int points, int amount) {
-    final pinController = TextEditingController();
-    final focusNode = FocusNode();
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!focusNode.hasFocus) {
-                focusNode.requestFocus();
-              }
-            });
-
-            return AlertDialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-              contentPadding: const EdgeInsets.all(24),
-
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Verify PIN",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  const Text(
-                    "Enter your 6-digit PIN to confirm this exchange.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 15, height: 1.4),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  /// PIN BOXES
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: List.generate(6, (index) {
-                      return Container(
-                        width: 40,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: const Color(0xffF8F8F8),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: index < pinController.text.length
-                                ? const Color(0xff0F7B94)
-                                : Colors.grey.shade300,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            index < pinController.text.length ? "•" : "",
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-
-                  /// HIDDEN INPUT
-                  Opacity(
-                    opacity: 0,
-                    child: SizedBox(
-                      width: 1,
-                      height: 1,
-                      child: TextField(
-                        focusNode: focusNode,
-                        controller: pinController,
-                        keyboardType: TextInputType.number,
-                        maxLength: 6,
-                        autofocus: true,
-                        onChanged: (_) {
-                          setState(() {});
-                        },
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text(
-                            "Cancel",
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 10),
-
-                      Expanded(
-                        flex: 2,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xff0F7B94),
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(0, 52),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28),
-                            ),
-                          ),
-
-                          onPressed: () {
-                            if (pinController.text.length != 6) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    "Please enter your 6-digit PIN",
-                                  ),
-                                ),
-                              );
-                              return;
-                            }
-                            if (pinController.text != ShopUser.pin) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Incorrect PIN")),
-                              );
-                              return;
-                            }
-
-                            setState(() {
-                              WalletPage.requests.insert(
-                                0,
-                                ExchangeRequest(
-                                  points: points,
-                                  amount: amount,
-                                  status: "Pending",
-                                  date: DateTime.now().toString().substring(
-                                    0,
-                                    16,
-                                  ),
-                                ),
-                              );
-
-                              AppBadges.walletCount.value = WalletPage.requests
-                                  .where(
-                                    (e) => e.status.toLowerCase() == "approved",
-                                  )
-                                  .length;
-                            });
-
-                            Navigator.of(context, rootNavigator: true).pop();
-
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              _showSuccessDialog(
-                                Navigator.of(
-                                  context,
-                                  rootNavigator: true,
-                                ).context,
-                              );
-                            });
-                          },
-
-                          child: const Text(
-                            "Continue",
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showSuccessDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           ),
-          content: SizedBox(
-            width: 320,
+          child: SafeArea(
+            top: false,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Color(0xffEAF8EF),
-                  child: Icon(Icons.check, color: Colors.green, size: 35),
+                Container(
+                  width: 44,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: const Color(0xffD9E1E5),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
-
+                const SizedBox(height: 24),
+                Container(
+                  width: 66,
+                  height: 66,
+                  decoration: BoxDecoration(
+                    color: const Color(0xff0F7B94).withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(21),
+                  ),
+                  child: const Icon(
+                    Icons.account_balance_wallet_rounded,
+                    color: Color(0xff0F7B94),
+                    size: 31,
+                  ),
+                ),
                 const SizedBox(height: 16),
-
                 const Text(
-                  "Exchange Request Created",
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                  'Wallet QR Scanned',
+                  style: TextStyle(
+                    color: Color(0xff172B35),
+                    fontSize: 21,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-
-                const SizedBox(height: 8),
-
+                const SizedBox(height: 7),
                 const Text(
-                  "Your cash exchange request has been submitted successfully.",
+                  'The wallet was found. Continue to enter '
+                  'the points you want to transfer.',
                   textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xff7E8D94),
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
                 ),
-
-                const SizedBox(height: 20),
-
+                const SizedBox(height: 22),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
+                  height: 52,
+                  child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
+                      elevation: 0,
                       backgroundColor: const Color(0xff0F7B94),
                       foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(17),
+                      ),
                     ),
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
+
+                      // Next step:
+                      // Open your point amount + PIN transfer sheet.
                     },
-                    child: const Text("Done"),
+                    icon: const Icon(Icons.arrow_forward_rounded),
+                    label: const Text(
+                      'Continue',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
               ],
@@ -635,6 +228,351 @@ class _WalletPageState extends State<WalletPage> {
         );
       },
     );
+  }
+
+  void _openMyQr() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MyQrPage()),
+    );
+  }
+
+  void _openHistory() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TransactionHistoryPage(transactions: transactions),
+      ),
+    );
+  }
+
+  void _showTransactionDetails(WalletTransaction transaction) {
+    final bool isReceived = transaction.isReceived;
+
+    final Color activityColor = isReceived
+        ? const Color(0xff22C55E) // Match success color
+        : const Color(0xff0F7B94); // Match primary brand color
+
+    final IconData activityIcon = isReceived
+        ? Icons.south_west_rounded
+        : Icons.north_east_rounded;
+
+    final String amountText = isReceived
+        ? '+${_formatPoints(transaction.points)} pts'
+        : '-${_formatPoints(transaction.points)} pts';
+
+    // Fintech Voucher Theme Colors
+    const Color voucherSheetBg = Color(0xffF1F5F9);
+    const Color voucherCardBg = Color(0xffFFFFFF);
+    const Color primary = Color(0xff0F7B94);
+    const Color success = Color(0xff22C55E);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.6),
+      builder: (sheetContext) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
+          decoration: const BoxDecoration(
+            color: voucherSheetBg,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle Bar
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xffCBD5E1),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Main Card Container with Soft Shadows & 32px Corners
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: voucherCardBg,
+                    borderRadius: BorderRadius.circular(32),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 25,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // Status Badge Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: success.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: success,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Text(
+                                  'Success',
+                                  style: TextStyle(
+                                    color: success,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Minimal Title
+                      Text(
+                        transaction.title,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color(0xff0F172A),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Large Typography for Amount
+                      Text(
+                        amountText,
+                        style: TextStyle(
+                          color: isReceived ? success : primary,
+                          fontSize: 38,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Subtle Divider
+                      const Divider(color: Color(0xffF1F5F9), height: 1),
+                      const SizedBox(height: 20),
+
+                      // Key-Value Rows with Small, Muted Labels
+                      if (transaction.subtitle != null &&
+                          transaction.subtitle!.trim().isNotEmpty) ...[
+                        _fintechRow('Details', transaction.subtitle!),
+                        const SizedBox(height: 14),
+                      ],
+                      _fintechRow('Type', isReceived ? 'Received' : 'Sent'),
+                      const SizedBox(height: 14),
+                      _fintechRow('Status', '● Completed', valueColor: success),
+                      const SizedBox(height: 14),
+                      _fintechRow(
+                        'Date',
+                        _formatFullDateTime(
+                          transaction.createdAt,
+                        ).split('•')[0].trim(),
+                      ),
+                      const SizedBox(height: 14),
+                      _fintechRow(
+                        'Time',
+                        _formatFullDateTime(
+                          transaction.createdAt,
+                        ).split('•')[1].trim(),
+                      ),
+                      const SizedBox(height: 14),
+                      _fintechRow('Transaction ID', transaction.id),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Side-by-Side Action Buttons (Save to Gallery & Done)
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 52,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xff334155),
+                            backgroundColor: Colors.white,
+                            side: const BorderSide(
+                              color: Color(0xffCBD5E1),
+                              width: 1.5,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  'Saved to gallery successfully!',
+                                ),
+                                backgroundColor: primary,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.download_rounded, size: 16),
+                              SizedBox(width: 6),
+                              Text(
+                                'Save',
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 52,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            backgroundColor: primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(sheetContext).pop();
+                          },
+                          child: const Text(
+                            'Done',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _fintechRow(String label, String value, {Color? valueColor}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xff64748B),
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              color: valueColor ?? const Color(0xff0F172A),
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatPoints(int value) {
+    final digits = value.abs().toString();
+    final result = StringBuffer();
+
+    for (int index = 0; index < digits.length; index++) {
+      final remainingDigits = digits.length - index;
+
+      result.write(digits[index]);
+
+      if (remainingDigits > 1 && remainingDigits % 3 == 1) {
+        result.write(',');
+      }
+    }
+
+    return result.toString();
+  }
+
+  String _formatFullDateTime(DateTime dateTime) {
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    final int hour = dateTime.hour;
+
+    final int displayHour = hour == 0
+        ? 12
+        : hour > 12
+        ? hour - 12
+        : hour;
+
+    final String period = hour >= 12 ? 'PM' : 'AM';
+
+    final String minute = dateTime.minute.toString().padLeft(2, '0');
+
+    return '${monthNames[dateTime.month - 1]} '
+        '${dateTime.day}, ${dateTime.year} • '
+        '$displayHour:$minute $period';
   }
 
   @override
@@ -642,316 +580,216 @@ class _WalletPageState extends State<WalletPage> {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 40),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 18),
 
           PageHeader(
             title: "Moe's Burmese Kitchen",
-            subtitle: "Point transactions",
-            icon: Icons.account_balance_wallet,
+            subtitle: 'Point wallet',
+            icon: Icons.account_balance_wallet_rounded,
             isShopOpen: _isShopOpen,
             onStatusChanged: (isOpen) {
               setState(() {
                 _isShopOpen = isOpen;
               });
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    _isShopOpen ? "Shop is now OPEN" : "Shop is now CLOSED",
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      _isShopOpen ? 'Shop is now OPEN' : 'Shop is now CLOSED',
+                    ),
+                    duration: const Duration(seconds: 2),
+                    backgroundColor: _isShopOpen ? Colors.green : Colors.red,
                   ),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: _isShopOpen ? Colors.green : Colors.red,
-                ),
-              );
+                );
             },
-
             notificationCount: 6,
-
             onNotification: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const NotificationPage()),
+                MaterialPageRoute(
+                  builder: (_) {
+                    return const NotificationPage();
+                  },
+                ),
               );
             },
-
             onLogout: _handleLogout,
           ),
 
-          /// HERO CARD
-          WalletBalanceCard(
-            onExchange: () {
-              _showExchangeSheet(context);
-            },
-          ),
+          WalletBalanceCard(balance: walletBalance),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
-          /// SUMMARY CARD
           Container(
-            padding: const EdgeInsets.all(20),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Exchange Overview",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: const Color(0xffE2E8F0), width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xff0F172A).withValues(alpha: 0.03),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
                 ),
-
-                const SizedBox(height: 18),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _miniSummaryCard(
-                        title: "Pending Requests",
-                        value: "$pendingRequestCount",
-                        icon: Icons.receipt_long,
-                        color: const Color(0xff4CD778),
-                      ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    Expanded(
-                      child: _miniSummaryCard(
-                        title: "Pending",
-                        value: "$pendingPoints pts",
-                        icon: Icons.schedule,
-                        color: Colors.amber,
-                      ),
-                    ),
-                  ],
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
+                  child: WalletActionButton(
+                    icon: Icons.send_rounded,
+                    title: 'Transfer',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              TransferPage(currentBalance: walletBalance),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: WalletActionButton(
+                    icon: Icons.qr_code_2_rounded,
+                    title: 'Receive',
+                    onTap: _openMyQr,
+                  ),
+                ),
+                Expanded(
+                  child: WalletActionButton(
+                    icon: Icons.qr_code_scanner_rounded,
+                    title: 'Scanner',
+                    onTap: widget.onOpenScanner,
+                  ),
+                ),
+                Expanded(
+                  child: WalletActionButton(
+                    icon: Icons.history_rounded,
+                    title: 'History',
+                    onTap: _openHistory,
+                  ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
-          /// REQUESTS CARD
           Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.grey.shade200),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: const Color(0xffE2E8F0), width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xff0F172A).withValues(alpha: 0.03),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            "Exchange History",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Recent Transactions',
+                          style: TextStyle(
+                            color: Color(0xff0F172A),
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w900,
                           ),
-
-                          const Spacer(),
-
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xffF2F7F8),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              "${filteredRequests.length}",
-                              style: const TextStyle(
-                                color: Color(0xff0F7B94),
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
-                              ),
-                            ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Activity logs',
+                          style: TextStyle(
+                            color: Color(0xff64748B),
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
                           ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 6),
-
-                      Text(
-                        "Track your exchange requests",
+                        ),
+                      ],
+                    ),
+                    TextButton(
+                      onPressed: _openHistory,
+                      child: const Text(
+                        'See all',
                         style: TextStyle(
-                          color: Colors.grey.shade600,
+                          color: Color(0xff0F7B94),
                           fontSize: 13,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const SizedBox(height: 16),
-
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _filterChip("All"),
-                            _filterChip("Pending"),
-                            _filterChip("Approved"),
-                            _filterChip("Paid"),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          foregroundColor: const Color(0xff0F7B94),
-                          side: const BorderSide(color: Color(0xff0F7B94)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        onPressed: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: selectedDate ?? DateTime.now(),
-                            firstDate: DateTime(2025),
-                            lastDate: DateTime(2030),
-                            builder: (context, child) {
-                              return Theme(
-                                data: Theme.of(context).copyWith(
-                                  colorScheme: const ColorScheme.light(
-                                    primary: Color(0xff0F7B94),
-                                    onPrimary: Colors.white,
-                                    surface: Colors.white,
-                                  ),
-                                ),
-                                child: child!,
-                              );
-                            },
-                          );
-
-                          if (picked != null) {
-                            setState(() {
-                              selectedDate = picked;
-                            });
-                          }
-                        },
-                        icon: const Icon(Icons.calendar_month_rounded),
-                        label: Text(
-                          selectedDate == null
-                              ? "Filter by Date"
-                              : selectedDate!.toString().substring(0, 10),
-                        ),
-                      ),
-
-                      if (selectedDate != null)
-                        TextButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              selectedDate = null;
-                            });
-                          },
-                          icon: const Icon(
-                            Icons.close,
-                            size: 18,
-                            color: Color(0xff0F7B94),
-                          ),
-                          label: const Text(
-                            "Clear Date Filter",
-                            style: TextStyle(
-                              color: Color(0xff0F7B94),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
 
-                const Divider(height: 1),
+                const SizedBox(height: 12),
 
-                ...filteredRequests.map(
-                  (request) => ExchangeRequestTile(request: request),
-                ),
+                if (recentTransactions.isEmpty)
+                  _emptyTransactions()
+                else
+                  ...recentTransactions.map((transaction) {
+                    return TransactionTile(
+                      transaction: transaction,
+                      onTap: () {
+                        _showTransactionDetails(transaction);
+                      },
+                    );
+                  }),
               ],
             ),
           ),
 
           /// BOTTOM SPACE
-          const SizedBox(height: 60),
+          const SizedBox(height: 75),
         ],
       ),
     );
   }
 
-  Widget _filterChip(String label) {
-    final selected = selectedFilter == label;
-
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
+  Widget _emptyTransactions() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 38),
+      decoration: BoxDecoration(
+        color: const Color(0xffF7FAFB),
         borderRadius: BorderRadius.circular(20),
-        onTap: () {
-          setState(() {
-            selectedFilter = label;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xff0F7B94) : const Color(0xffF4F6F7),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            label,
+      ),
+      child: const Column(
+        children: [
+          Icon(Icons.receipt_long_outlined, color: Color(0xff9BA8AD), size: 38),
+          SizedBox(height: 12),
+          Text(
+            'No transactions yet',
             style: TextStyle(
-              color: selected ? Colors.white : Colors.black87,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+              color: Color(0xff34464E),
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _miniSummaryCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(.08),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 22),
-
-          const SizedBox(height: 14),
-
+          SizedBox(height: 5),
           Text(
-            value,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-          ),
-
-          const SizedBox(height: 4),
-
-          Text(
-            title,
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+            'Sent and received points will appear here.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xff8D999E), fontSize: 12),
           ),
         ],
       ),

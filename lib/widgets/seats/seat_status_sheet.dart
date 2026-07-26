@@ -29,7 +29,11 @@ class SeatStatusSheet extends StatelessWidget {
               CircleAvatar(
                 radius: 32,
                 backgroundColor: seat.statusColor.withValues(alpha: 0.15),
-                child: Icon(seat.icon, size: 30, color: seat.statusColor),
+                child: Icon(
+                  Icons.table_restaurant_rounded,
+                  size: 30,
+                  color: seat.statusColor,
+                ),
               ),
 
               const SizedBox(height: 14),
@@ -40,6 +44,12 @@ class SeatStatusSheet extends StatelessWidget {
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
                 ),
+              ),
+
+              const SizedBox(height: 4),
+              const Text(
+                'Table status',
+                style: TextStyle(color: Color(0xff89969C), fontSize: 12),
               ),
 
               const SizedBox(height: 6),
@@ -89,7 +99,7 @@ class SeatStatusSheet extends StatelessWidget {
 
               ListTile(
                 leading: const Icon(Icons.edit, color: Color(0xff0F7B94)),
-                title: const Text("Rename Seat"),
+                title: const Text("Rename Table"),
                 onTap: () {
                   Navigator.pop(context);
                   onRename();
@@ -99,7 +109,7 @@ class SeatStatusSheet extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: const Text(
-                  "Delete Seat",
+                  "Delete Table",
                   style: TextStyle(color: Colors.red),
                 ),
                 onTap: () {
