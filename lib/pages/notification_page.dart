@@ -8,68 +8,68 @@ class NotificationPage extends StatefulWidget {
 }
 
 class _NotificationPageState extends State<NotificationPage> {
-  String selectedFilter = "All";
+  String selectedFilter = "အားလုံး";
 
   final List<Map<String, dynamic>> allNotifications = [
     {
-      "category": "Orders",
+      "category": "အော်ဒါများ",
       "icon": Icons.shopping_bag_rounded,
       "iconColor": const Color(0xff0F7B94),
-      "title": "New Order Received",
-      "description": "Student ordered Chicken Fried Rice x2.",
-      "time": "2 mins ago",
+      "title": "အော်ဒါအသစ် ရရှိပါသည်",
+      "description": "ကျောင်းသားမှ ကြက်သားထမင်းကြော် ၂ ပွဲ မှာယူထားပါသည်။",
+      "time": "လွန်ခဲ့သော ၂ မိနစ်",
       "unread": true,
     },
     {
-      "category": "Orders",
+      "category": "အော်ဒါများ",
       "icon": Icons.shopping_bag_rounded,
       "iconColor": const Color(0xff0F7B94),
-      "title": "New Order Received",
-      "description": "Student ordered Bubble Tea x1.",
-      "time": "10 mins ago",
+      "title": "အော်ဒါအသစ် ရရှိပါသည်",
+      "description": "ကျောင်းသားမှ လက်ဖက်ရည် ၁ ခွက် မှာယူထားပါသည်။",
+      "time": "လွန်ခဲ့သော ၁၀ မိနစ်",
       "unread": true,
     },
     {
-      "category": "Orders",
+      "category": "အော်ဒါများ",
       "icon": Icons.local_shipping_rounded,
       "iconColor": const Color(0xff0F7B94),
-      "title": "Order Completed",
-      "description": "Order #1024 has been picked up successfully.",
-      "time": "30 mins ago",
+      "title": "အော်ဒါ ပြီးစီးပါပြီ",
+      "description": "အော်ဒါ #1024 ကို အောင်မြင်စွာ လာယူပြီးပါပြီ။",
+      "time": "လွန်ခဲ့သော ၃၀ မိနစ်",
       "unread": false,
     },
     {
-      "category": "Points",
+      "category": "ပွိုင့်များ",
       "icon": Icons.stars_rounded,
       "iconColor": const Color(0xff19A7CE),
-      "title": "Points Exchange Approved",
-      "description": "500 points exchange request has been approved.",
-      "time": "1 hour ago",
+      "title": "ပွိုင့် လက်ခံရရှိပါသည်",
+      "description": "ပွိုင့် ၅၀၀ လက်ခံရရှိပါသည်။",
+      "time": "လွန်ခဲ့သော ၁ နာရီ",
       "unread": false,
     },
     {
-      "category": "Points",
+      "category": "ပွိုင့်များ",
       "icon": Icons.stars_rounded,
       "iconColor": const Color(0xff19A7CE),
-      "title": "Points Exchange Approved",
-      "description": "250 points exchange request has been approved.",
-      "time": "2 hours ago",
+      "title": "ပွိုင့် လွှဲပြောင်းမှု အောင်မြင်ပါသည်",
+      "description": "ပွိုင့် ၂၅၀ လွှဲပြောင်းပြီးပါပြီ။",
+      "time": "လွန်ခဲ့သော ၂ နာရီ",
       "unread": false,
     },
     {
-      "category": "Points",
+      "category": "ပွိုင့်များ",
       "icon": Icons.stars_rounded,
       "iconColor": const Color(0xff19A7CE),
-      "title": "Points Exchange Approved",
-      "description": "1000 points exchange request has been approved.",
-      "time": "Yesterday",
+      "title": "ပွိုင့် လက်ခံရရှိပါသည်",
+      "description": "ပွိုင့် ၁၀၀၀ လက်ခံရရှိပါသည်။",
+      "time": "မနေ့က",
       "unread": false,
     },
   ];
 
   @override
   Widget build(BuildContext context) {
-    final filteredNotifications = selectedFilter == "All"
+    final filteredNotifications = selectedFilter == "အားလုံး"
         ? allNotifications
         : allNotifications
               .where((item) => item["category"] == selectedFilter)
@@ -83,7 +83,7 @@ class _NotificationPageState extends State<NotificationPage> {
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         title: const Text(
-          "Notifications",
+          "အသိပေးချက်များ",
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w700,
@@ -98,7 +98,7 @@ class _NotificationPageState extends State<NotificationPage> {
               size: 22,
               color: Colors.white,
             ),
-            tooltip: "Mark all as read",
+            tooltip: "အားလုံးကို ဖတ်ပြီးအဖြစ် မှတ်ရန်",
             onPressed: () {
               setState(() {
                 for (var n in allNotifications) {
@@ -117,11 +117,11 @@ class _NotificationPageState extends State<NotificationPage> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Row(
               children: [
-                _buildFilterChip("All"),
+                _buildFilterChip("အားလုံး"),
                 const SizedBox(width: 8),
-                _buildFilterChip("Orders"),
+                _buildFilterChip("အော်ဒါများ"),
                 const SizedBox(width: 8),
-                _buildFilterChip("Points"),
+                _buildFilterChip("ပွိုင့်များ"),
               ],
             ),
           ),
@@ -131,7 +131,7 @@ class _NotificationPageState extends State<NotificationPage> {
             child: filteredNotifications.isEmpty
                 ? Center(
                     child: Text(
-                      "No notifications found",
+                      "အသိပေးချက် မရှိပါ",
                       style: TextStyle(color: Colors.blueGrey.shade400),
                     ),
                   )
@@ -163,7 +163,7 @@ class _NotificationPageState extends State<NotificationPage> {
                           });
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text("Notification deleted"),
+                              content: Text("အသိပေးချက်ကို ဖျက်ပြီးပါပြီ"),
                               duration: Duration(seconds: 2),
                             ),
                           );

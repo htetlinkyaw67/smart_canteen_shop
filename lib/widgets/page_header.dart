@@ -1,5 +1,22 @@
 import 'package:flutter/material.dart';
 
+/// Shared shop status used by every PageHeader in the app.
+class ShopStatusController {
+  ShopStatusController._();
+
+  static final ValueNotifier<bool> isOpen = ValueNotifier<bool>(true);
+
+  static void setOpen(bool value) {
+    if (isOpen.value != value) {
+      isOpen.value = value;
+    }
+  }
+
+  static void toggle() {
+    isOpen.value = !isOpen.value;
+  }
+}
+
 class PageHeader extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -108,50 +125,60 @@ class PageHeader extends StatelessWidget {
                       ),
                     ),
 
-                    // INLINE CLICKABLE STATUS TEXT
-                    if (onStatusChanged != null)
-                      GestureDetector(
-                        onTap: () => onStatusChanged!(!isShopOpen),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isShopOpen
-                                ? const Color(0xff10B981).withOpacity(0.12)
-                                : Colors.red.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: isShopOpen
-                                      ? const Color(0xff10B981)
-                                      : Colors.red,
+                    // APP-WIDE SYNCHRONIZED SHOP STATUS
+                    ValueListenableBuilder<bool>(
+                      valueListenable: ShopStatusController.isOpen,
+                      builder: (context, isOpen, child) {
+                        return GestureDetector(
+                          onTap: onStatusChanged == null
+                              ? null
+                              : () {
+                                  final newStatus = !isOpen;
+                                  ShopStatusController.setOpen(newStatus);
+                                  onStatusChanged?.call(newStatus);
+                                },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isOpen
+                                  ? const Color(0xff10B981).withOpacity(0.12)
+                                  : Colors.red.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isOpen
+                                        ? const Color(0xff10B981)
+                                        : Colors.red,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                isShopOpen ? "OPEN" : "CLOSED",
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: isShopOpen
-                                      ? const Color(0xff10B981)
-                                      : Colors.red,
+                                const SizedBox(width: 5),
+                                Text(
+                                  isOpen ? 'ဆိုင်ဖွင့်သည်' : 'ဆိုင်ပိတ်သည်',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: isOpen
+                                        ? const Color(0xff10B981)
+                                        : Colors.red,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ],
@@ -163,7 +190,7 @@ class PageHeader extends StatelessWidget {
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: onNotification,
-              tooltip: "Notifications",
+              tooltip: 'အသိပေးချက်များ',
               icon: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -212,7 +239,7 @@ class PageHeader extends StatelessWidget {
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: onLogout,
-              tooltip: "Logout",
+              tooltip: 'ထွက်ရန်',
               icon: const Icon(
                 Icons.logout_rounded,
                 color: Colors.grey,

@@ -46,7 +46,7 @@ class _MyQrPageState extends State<MyQrPage> {
             children: [
               Icon(Icons.check_circle_rounded, color: Color(0xff4CD778)),
               SizedBox(width: 10),
-              Expanded(child: Text('Wallet ID copied')),
+              Expanded(child: Text('Wallet ID ကို ကူးယူပြီးပါပြီ')),
             ],
           ),
         ),
@@ -71,7 +71,7 @@ class _MyQrPageState extends State<MyQrPage> {
             children: [
               Icon(Icons.refresh_rounded, color: Colors.white),
               SizedBox(width: 10),
-              Expanded(child: Text('QR code refreshed')),
+              Expanded(child: Text('QR Code ကို အသစ်ပြန်လုပ်ပြီးပါပြီ')),
             ],
           ),
         ),
@@ -122,7 +122,7 @@ class _MyQrPageState extends State<MyQrPage> {
                 const SizedBox(height: 16),
 
                 const Text(
-                  'Share Wallet',
+                  'Wallet မျှဝေရန်',
                   style: TextStyle(
                     color: Color(0xff172B35),
                     fontSize: 21,
@@ -133,8 +133,8 @@ class _MyQrPageState extends State<MyQrPage> {
                 const SizedBox(height: 7),
 
                 const Text(
-                  'Copy the wallet information and share it '
-                  'with another user.',
+                  'Wallet အချက်အလက်ကို ကူးယူပြီး '
+                  'အခြားအသုံးပြုသူနှင့် မျှဝေပါ။',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Color(0xff7E8D94),
@@ -148,7 +148,7 @@ class _MyQrPageState extends State<MyQrPage> {
                 _shareOption(
                   context: sheetContext,
                   icon: Icons.badge_outlined,
-                  title: 'Copy wallet ID',
+                  title: 'Wallet ID ကူးယူရန်',
                   subtitle: widget.walletId,
                   onTap: () async {
                     Navigator.pop(sheetContext);
@@ -161,8 +161,8 @@ class _MyQrPageState extends State<MyQrPage> {
                 _shareOption(
                   context: sheetContext,
                   icon: Icons.link_rounded,
-                  title: 'Copy wallet link',
-                  subtitle: 'Copy the QR payment link',
+                  title: 'Wallet Link ကူးယူရန်',
+                  subtitle: 'QR ငွေပေးချေမှု Link ကို ကူးယူရန်',
                   onTap: () async {
                     Navigator.pop(sheetContext);
 
@@ -188,7 +188,9 @@ class _MyQrPageState extends State<MyQrPage> {
                                 color: Color(0xff4CD778),
                               ),
                               SizedBox(width: 10),
-                              Expanded(child: Text('Wallet link copied')),
+                              Expanded(
+                                child: Text('Wallet Link ကို ကူးယူပြီးပါပြီ'),
+                              ),
                             ],
                           ),
                         ),
@@ -290,7 +292,7 @@ class _MyQrPageState extends State<MyQrPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'My QR',
+              'ကျွန်ုပ်၏ QR',
               style: TextStyle(
                 color: Color(0xff172B35),
                 fontSize: 18,
@@ -299,7 +301,7 @@ class _MyQrPageState extends State<MyQrPage> {
             ),
             SizedBox(height: 2),
             Text(
-              'Receive points',
+              'ပွိုင့်လက်ခံရန်',
               style: TextStyle(
                 color: Color(0xff839198),
                 fontSize: 11,
@@ -310,7 +312,7 @@ class _MyQrPageState extends State<MyQrPage> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Refresh QR',
+            tooltip: 'QR အသစ်ပြန်လုပ်ရန်',
             onPressed: _refreshQrCode,
             icon: const Icon(Icons.refresh_rounded, color: Color(0xff0F7B94)),
           ),
@@ -381,7 +383,7 @@ class _MyQrPageState extends State<MyQrPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Receive Points',
+                  'ပွိုင့်လက်ခံရန်',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 19,
@@ -390,7 +392,7 @@ class _MyQrPageState extends State<MyQrPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Let another user scan your QR code',
+                  'အခြားအသုံးပြုသူအား သင်၏ QR Code ကို Scan ဖတ်ခိုင်းပါ',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.82),
                     fontSize: 12,
@@ -452,7 +454,7 @@ class _MyQrPageState extends State<MyQrPage> {
           const SizedBox(height: 5),
 
           const Text(
-            'Shop Point Wallet',
+            'ဆိုင်၏ ပွိုင့် Wallet',
             style: TextStyle(
               color: Color(0xff87949A),
               fontSize: 12,
@@ -497,7 +499,7 @@ class _MyQrPageState extends State<MyQrPage> {
           const SizedBox(height: 20),
 
           const Text(
-            'Scan to send points',
+            'ပွိုင့်ပေးပို့ရန် Scan ဖတ်ပါ',
             style: TextStyle(
               color: Color(0xff263941),
               fontSize: 15,
@@ -508,7 +510,7 @@ class _MyQrPageState extends State<MyQrPage> {
           const SizedBox(height: 5),
 
           const Text(
-            'Ask the sender to scan this QR code.',
+            'ပေးပို့သူအား ဤ QR Code ကို Scan ဖတ်ခိုင်းပါ။',
             textAlign: TextAlign.center,
             style: TextStyle(color: Color(0xff89969C), fontSize: 12),
           ),
@@ -569,7 +571,7 @@ class _MyQrPageState extends State<MyQrPage> {
                 ),
 
                 IconButton(
-                  tooltip: 'Copy wallet ID',
+                  tooltip: 'Wallet ID ကူးယူရန်',
                   onPressed: _copyWalletId,
                   icon: const Icon(
                     Icons.copy_rounded,
@@ -598,7 +600,7 @@ class _MyQrPageState extends State<MyQrPage> {
                   onPressed: _refreshQrCode,
                   icon: const Icon(Icons.refresh_rounded, size: 20),
                   label: const Text(
-                    'Refresh',
+                    'အသစ်လုပ်ရန်',
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -620,7 +622,7 @@ class _MyQrPageState extends State<MyQrPage> {
                   onPressed: _shareQrCode,
                   icon: const Icon(Icons.share_rounded, size: 19),
                   label: const Text(
-                    'Share',
+                    'မျှဝေရန်',
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -648,8 +650,8 @@ class _MyQrPageState extends State<MyQrPage> {
           SizedBox(width: 11),
           Expanded(
             child: Text(
-              'Only accept points after confirming the '
-              'transaction in your wallet history.',
+              'Wallet မှတ်တမ်းတွင် ငွေလွှဲမှုကို '
+              'စစ်ဆေးအတည်ပြုပြီးမှ ပွိုင့်များကို လက်ခံပါ။',
               style: TextStyle(
                 color: Color(0xff41616D),
                 fontSize: 12,

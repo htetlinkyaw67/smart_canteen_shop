@@ -117,156 +117,200 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
 
   void _showTransactionDetails(WalletTransaction transaction) {
     final bool isReceived = transaction.isReceived;
-    final String amountText = isReceived
-        ? '+${_formatPoints(transaction.points)} pts'
-        : '-${_formatPoints(transaction.points)} pts';
 
-    const Color sheetBg = Color(0xffF8FAFC);
-    const Color cardBg = Colors.white;
+    final Color activityColor = isReceived
+        ? const Color(0xff22C55E) // Match success color
+        : const Color(0xff0F7B94); // Match primary brand color
+
+    final IconData activityIcon = isReceived
+        ? Icons.south_west_rounded
+        : Icons.north_east_rounded;
+
+    final String amountText = isReceived
+        ? '+${_formatPoints(transaction.points)} ပွိုင့်'
+        : '-${_formatPoints(transaction.points)} ပွိုင့်';
+
+    // Fintech Voucher Theme Colors
+    const Color voucherSheetBg = Color(0xffF1F5F9);
+    const Color voucherCardBg = Color(0xffFFFFFF);
     const Color primary = Color(0xff0F7B94);
-    const Color success = Color(0xff10B981);
+    const Color success = Color(0xff22C55E);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.6),
       builder: (sheetContext) {
         return Container(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
           decoration: const BoxDecoration(
-            color: sheetBg,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            color: voucherSheetBg,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
           ),
           child: SafeArea(
             top: false,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Handle Bar
                 Container(
-                  width: 40,
+                  width: 36,
                   height: 4,
                   decoration: BoxDecoration(
                     color: const Color(0xffCBD5E1),
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+
+                // Main Card Container with Soft Shadows & 32px Corners
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(24),
+                    color: voucherCardBg,
+                    borderRadius: BorderRadius.circular(32),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 25,
+                        offset: const Offset(0, 12),
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: success.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: const BoxDecoration(
-                                color: success,
-                                shape: BoxShape.circle,
-                              ),
+                      // Status Badge Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
                             ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Completed',
-                              style: TextStyle(
-                                color: success,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            decoration: BoxDecoration(
+                              color: success.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                          ],
-                        ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: success,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Text(
+                                  'အောင်မြင်သည်',
+                                  style: TextStyle(
+                                    color: success,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
+
+                      // Minimal Title
                       Text(
                         transaction.title,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Color(0xff0F172A),
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
+
+                      // Large Typography for Amount
                       Text(
                         amountText,
                         style: TextStyle(
                           color: isReceived ? success : primary,
-                          fontSize: 36,
+                          fontSize: 38,
                           fontWeight: FontWeight.w900,
                           letterSpacing: -1,
                         ),
                       ),
                       const SizedBox(height: 24),
+
+                      // Subtle Divider
                       const Divider(color: Color(0xffF1F5F9), height: 1),
                       const SizedBox(height: 20),
+
+                      // Key-Value Rows with Small, Muted Labels
                       if (transaction.subtitle != null &&
                           transaction.subtitle!.trim().isNotEmpty) ...[
-                        _detailRow('Description', transaction.subtitle!),
+                        _fintechRow('အသေးစိတ်', transaction.subtitle!),
                         const SizedBox(height: 14),
                       ],
-                      _detailRow('Type', isReceived ? 'Received' : 'Sent'),
-                      const SizedBox(height: 14),
-                      _detailRow(
-                        'Date & Time',
-                        _formatFullDateTime(transaction.createdAt),
+                      _fintechRow(
+                        'အမျိုးအစား',
+                        isReceived ? 'လက်ခံရရှိ' : 'ပို့ပြီး',
                       ),
                       const SizedBox(height: 14),
-                      _detailRow('Transaction ID', transaction.id),
+                      _fintechRow('အခြေအနေ', 'ပြီးဆုံး'),
+                      const SizedBox(height: 14),
+                      _fintechRow(
+                        'ရက်စွဲ',
+                        _formatFullDateTime(
+                          transaction.createdAt,
+                        ).split('•')[0].trim(),
+                      ),
+                      const SizedBox(height: 14),
+                      _fintechRow(
+                        'အချိန်',
+                        _formatFullDateTime(
+                          transaction.createdAt,
+                        ).split('•')[1].trim(),
+                      ),
+                      const SizedBox(height: 14),
+                      _fintechRow('ငွေလွှဲကုဒ်', transaction.id),
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 20),
+
+                // Side-by-Side Action Buttons (Save to Gallery & Done)
                 Row(
                   children: [
                     Expanded(
                       child: SizedBox(
-                        height: 48,
+                        height: 52,
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xff334155),
                             backgroundColor: Colors.white,
                             side: const BorderSide(
                               color: Color(0xffCBD5E1),
-                              width: 1,
+                              width: 1.5,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: const Text(
-                                  'Saved to gallery successfully!',
+                                  'အောင်မြင်စွာ သိမ်းပြီးပါပြီ။',
                                 ),
                                 backgroundColor: primary,
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
                             );
@@ -277,10 +321,10 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                               Icon(Icons.download_rounded, size: 16),
                               SizedBox(width: 6),
                               Text(
-                                'Save Receipt',
+                                'သိမ်းမည်',
                                 style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ],
@@ -291,22 +335,24 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: SizedBox(
-                        height: 48,
+                        height: 52,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             elevation: 0,
                             backgroundColor: primary,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          onPressed: () => Navigator.of(sheetContext).pop(),
+                          onPressed: () {
+                            Navigator.of(sheetContext).pop();
+                          },
                           child: const Text(
-                            'Done',
+                            'ပြီးပါပြီ',
                             style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
@@ -322,7 +368,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     );
   }
 
-  Widget _detailRow(String label, String value) {
+  Widget _fintechRow(String label, String value, {Color? valueColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,7 +377,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           label,
           style: const TextStyle(
             color: Color(0xff64748B),
-            fontSize: 12.5,
+            fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -340,10 +386,10 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           child: Text(
             value,
             textAlign: TextAlign.end,
-            style: const TextStyle(
-              color: Color(0xff0F172A),
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+            style: TextStyle(
+              color: valueColor ?? const Color(0xff0F172A),
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -400,7 +446,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
               ),
             ),
             title: const Text(
-              'Transaction History',
+              'ငွေလွှဲမှတ်တမ်း',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -452,7 +498,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     const Text(
-                                      'Incoming',
+                                      'အဝင် ပွိုင့်',
                                       style: TextStyle(
                                         color: textMuted,
                                         fontSize: 11,
@@ -501,7 +547,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     const Text(
-                                      'Outgoing',
+                                      'အထွက် ပွိုင့်',
                                       style: TextStyle(
                                         color: textMuted,
                                         fontSize: 11,
@@ -538,7 +584,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                       color: textDark,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Search description, ID, or points...',
+                      hintText: 'ID သို့မဟုတ် ပွိုင့်ဖြင့် ရှာပါ...',
                       hintStyle: const TextStyle(
                         color: Color(0xff94A3B8),
                         fontSize: 13,
@@ -597,17 +643,20 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: _buildSegmentTab('All', TransactionFilter.all),
+                          child: _buildSegmentTab(
+                            'အားလုံး',
+                            TransactionFilter.all,
+                          ),
                         ),
                         Expanded(
                           child: _buildSegmentTab(
-                            'Received',
+                            'လက်ခံရရှိ',
                             TransactionFilter.received,
                           ),
                         ),
                         Expanded(
                           child: _buildSegmentTab(
-                            'Sent',
+                            'ပေးပို့',
                             TransactionFilter.sent,
                           ),
                         ),
@@ -643,7 +692,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                                 const SizedBox(width: 8),
                                 Text(
                                   _selectedDate == null
-                                      ? 'Filter by date'
+                                      ? 'ရက်စွဲဖြင့် စစ်ထုတ်ရန်'
                                       : _formatShortDate(_selectedDate!),
                                   style: const TextStyle(
                                     color: textDark,
@@ -675,7 +724,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                             onPressed: _clearFilters,
                             icon: const Icon(Icons.refresh_rounded, size: 14),
                             label: const Text(
-                              'Reset',
+                              'ပြန်သတ်မှတ်ရန်',
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w600,
@@ -699,7 +748,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Activity Timeline',
+                    'လုပ်ဆောင်မှုမှတ်တမ်း',
                     style: TextStyle(
                       color: textDark,
                       fontSize: 13.5,
@@ -707,7 +756,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                     ),
                   ),
                   Text(
-                    '${visibleTransactions.length} items',
+                    '${visibleTransactions.length} ခု',
                     style: const TextStyle(
                       color: textMuted,
                       fontSize: 11,
@@ -808,7 +857,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           ),
           const SizedBox(height: 14),
           const Text(
-            'No records found',
+            'မှတ်တမ်း မတွေ့ပါ',
             style: TextStyle(
               color: Color(0xff0F172A),
               fontSize: 14,
@@ -817,7 +866,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Try adjusting your search terms or filters.',
+            'ရှာဖွေမှုစာသား သို့မဟုတ် Filter များကို ပြင်ဆင်ကြည့်ပါ။',
             style: TextStyle(color: Color(0xff64748B), fontSize: 11.5),
           ),
           const SizedBox(height: 16),
@@ -832,7 +881,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
             ),
             onPressed: _clearFilters,
             child: const Text(
-              'Clear filters',
+              'Filter များ ဖယ်ရှားရန်',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 11.5),
             ),
           ),
@@ -873,24 +922,35 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   }
 
   String _formatFullDateTime(DateTime dateTime) {
-    const List<String> months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
+    const monthNames = [
+      'ဇန်နဝါရီ',
+      'ဖေဖော်ဝါရီ',
+      'မတ်',
+      'ဧပြီ',
+      'မေ',
+      'ဇွန်',
+      'ဇူလိုင်',
+      'ဩဂုတ်',
+      'စက်တင်ဘာ',
+      'အောက်တိုဘာ',
+      'နိုဝင်ဘာ',
+      'ဒီဇင်ဘာ',
     ];
+
     final int hour = dateTime.hour;
-    final int displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+
+    final int displayHour = hour == 0
+        ? 12
+        : hour > 12
+        ? hour - 12
+        : hour;
+
     final String period = hour >= 12 ? 'PM' : 'AM';
+
     final String minute = dateTime.minute.toString().padLeft(2, '0');
-    return '${months[dateTime.month - 1]} ${dateTime.day}, ${dateTime.year} • $displayHour:$minute $period';
+
+    return '${monthNames[dateTime.month - 1]} '
+        '${dateTime.day}, ${dateTime.year} • '
+        '$displayHour:$minute $period';
   }
 }

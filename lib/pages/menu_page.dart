@@ -1,50 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_canteen_shop/models/category.dart';
+import 'package:smart_canteen_shop/models/menu_model.dart';
+import 'package:smart_canteen_shop/provider/menu_provider.dart';
+import 'package:smart_canteen_shop/services/api_service.dart';
 import '../data/menu_inventory.dart';
 import '../widgets/page_header.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'notification_page.dart';
 
-class MenuPage extends StatefulWidget {
+class MenuPage extends ConsumerStatefulWidget {
   const MenuPage({super.key});
 
   @override
-  State<MenuPage> createState() => _MenuPageState();
+  ConsumerState<MenuPage> createState() => _MenuPageState();
 }
 
-class _MenuPageState extends State<MenuPage> {
+class _MenuPageState extends ConsumerState<MenuPage> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController categoryController = TextEditingController();
+  final TextEditingController timeController = TextEditingController();
   final TextEditingController descController = TextEditingController();
   final TextEditingController pointsController = TextEditingController();
   final TextEditingController stockController = TextEditingController();
 
   bool isAvailable = true;
+  bool isAddingMenu = false;
 
   File? selectedImage;
   final ImagePicker picker = ImagePicker();
 
   String? selectedMealType;
-  String selectedCategory = "All";
-  String selectedMealFilter = "All";
-  String selectedStatusFilter = "All";
+  // String selectedCategory = "All";
+  String selectedMealFilter = "အားလုံး";
+  String selectedStatusFilter = "အားလုံး";
+  int? selectedCategoryId;
+  bool get isStockItem {
+    final name = selectedCategory?.categoryName ?? "";
 
-  bool get isStockItem =>
-      selectedCategory == "Drinks" ||
-      selectedCategory == "Tea" ||
-      selectedCategory == "Snacks";
+    return name == "အချိုရည်နှင့် အဖျော်ယမကာ" ||
+        name == "လက်ဖက်ရည်နှင့်ကော်ဖီ" ||
+        name == "သရေစာနှင့်သကြားလုံး";
+  }
 
-  final List<String> categories = [
-    "All",
-    "Main",
-    "Appetizer",
-    "Salad",
-    "Noodles",
-    "Drinks",
-    "Tea",
-    "Snacks",
-    "Desserts",
-  ];
+  List<CategoryModel> categories = [];
+  String selectedCategoryName = "အားလုံး";
+  CategoryModel? selectedCategory;
 
   Future<void> _pickImage(void Function(void Function()) setModalState) async {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -102,49 +104,43 @@ class _MenuPageState extends State<MenuPage> {
 
   final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, dynamic>> allItems = MenuInventory.items;
+  List<MenuModel> allItems = [];
 
-  List<Map<String, dynamic>> filteredItems = [];
+  List<MenuModel> filteredItems = [];
 
   @override
   void initState() {
     super.initState();
-    filteredItems = allItems;
+
+    filteredItems = List.from(allItems);
+
+    loadCategories();
 
     _searchController.addListener(_filterItems);
   }
 
+  Future<void> loadCategories() async {
+    try {
+      final result = await ApiService().getAllCategories();
+
+      setState(() {
+        categories = result;
+      });
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   void _filterItems() {
-    final query = _searchController.text.toLowerCase();
-
-    setState(() {
+    if (selectedCategoryId == null) {
+      filteredItems = List.from(allItems);
+    } else {
       filteredItems = allItems.where((item) {
-        final name = item["name"].toString().toLowerCase();
-
-        final desc = item["desc"].toString().toLowerCase();
-
-        final category = item["category"] ?? "Main";
-
-        final mealType = item["mealType"] ?? "Breakfast";
-
-        final matchesSearch = name.contains(query) || desc.contains(query);
-
-        final matchesCategory =
-            selectedCategory == "All" || category == selectedCategory;
-
-        final available = item["available"] ?? false;
-
-        final matchesMeal =
-            selectedMealFilter == "All" || mealType == selectedMealFilter;
-
-        final matchesStatus =
-            selectedStatusFilter == "All" ||
-            (selectedStatusFilter == "Available" && available) ||
-            (selectedStatusFilter == "Sold Out" && !available);
-
-        return matchesSearch && matchesCategory && matchesMeal && matchesStatus;
+        return item.categoryId == selectedCategoryId;
       }).toList();
-    });
+    }
+
+    setState(() {});
   }
 
   @override
@@ -164,7 +160,7 @@ class _MenuPageState extends State<MenuPage> {
 
           PageHeader(
             title: "Moe's Burmese Kitchen",
-            subtitle: "Manage food & drinks",
+            subtitle: "မီနူးပြင်ဆင်ခြင်း",
             icon: Icons.restaurant_menu,
             isShopOpen: _isShopOpen,
             onStatusChanged: (isOpen) {
@@ -175,7 +171,7 @@ class _MenuPageState extends State<MenuPage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    _isShopOpen ? "Shop is now OPEN" : "Shop is now CLOSED",
+                    _isShopOpen ? "ဆိုင်ဖွင့်ထားပါပြီ" : "ဆိုင်ပိတ်ထားပါပြီ",
                   ),
                   duration: const Duration(seconds: 2),
                   backgroundColor: _isShopOpen ? Colors.green : Colors.red,
@@ -219,7 +215,7 @@ class _MenuPageState extends State<MenuPage> {
                     ),
                     SizedBox(width: 6),
                     Text(
-                      "Meal Type",
+                      "အစားအစာအမျိုးအစား",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -235,9 +231,9 @@ class _MenuPageState extends State<MenuPage> {
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
-                      _buildMealFilterChip("All"),
-                      _buildMealFilterChip("Breakfast"),
-                      _buildMealFilterChip("Lunch"),
+                      _buildMealFilterChip("အားလုံး"),
+                      _buildMealFilterChip("မနက်စာ"),
+                      _buildMealFilterChip("နေ့လယ်စာ"),
                     ],
                   ),
                 ),
@@ -253,7 +249,7 @@ class _MenuPageState extends State<MenuPage> {
                     ),
                     SizedBox(width: 6),
                     Text(
-                      "Status",
+                      "အခြေအနေ",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -269,9 +265,9 @@ class _MenuPageState extends State<MenuPage> {
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
-                      _buildStatusFilterChip("All"),
-                      _buildStatusFilterChip("Available"),
-                      _buildStatusFilterChip("Sold Out"),
+                      _buildStatusFilterChip("အားလုံး"),
+                      _buildStatusFilterChip("ရရှိနိုင်သည်"),
+                      _buildStatusFilterChip("ကုန်သွားပြီ"),
                     ],
                   ),
                 ),
@@ -286,9 +282,11 @@ class _MenuPageState extends State<MenuPage> {
                       size: 18,
                       color: Color(0xff0F7B94),
                     ),
+
                     SizedBox(width: 6),
+
                     Text(
-                      "Categories",
+                      "အမျိုးအစားများ",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -301,20 +299,31 @@ class _MenuPageState extends State<MenuPage> {
 
                 SizedBox(
                   height: 40,
+
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
+
                     itemCount: categories.length + 1,
+
                     itemBuilder: (context, index) {
-                      if (index == categories.length) {
+                      if (index == 0) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
-                          child: _buildAddCategoryChip(),
+
+                          child: _buildCategoryChip("အားလုံး", null),
                         );
                       }
 
+                      final category = categories[index - 1];
+
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
-                        child: _buildCategoryChip(categories[index]),
+
+                        child: _buildCategoryChip(
+                          category.categoryName,
+
+                          category.categoryId,
+                        ),
                       );
                     },
                   ),
@@ -338,7 +347,7 @@ class _MenuPageState extends State<MenuPage> {
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: "Search menu...",
+                      hintText: "မီနူး ရှာဖွေပါ...",
                       hintStyle: TextStyle(color: Colors.grey.shade500),
                       prefixIcon: Icon(
                         Icons.search,
@@ -364,9 +373,9 @@ class _MenuPageState extends State<MenuPage> {
                   child: const Row(
                     children: [
                       Icon(Icons.add, color: Colors.white),
-                      SizedBox(width: 6),
+                      SizedBox(width: 4),
                       Text(
-                        "Add",
+                        "မီနူးထည့်ရန်",
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -384,7 +393,7 @@ class _MenuPageState extends State<MenuPage> {
           const SizedBox(height: 16),
 
           Text(
-            "${filteredItems.length} items",
+            "${filteredItems.length} ခု",
             style: TextStyle(
               color: Colors.grey.shade600,
               fontWeight: FontWeight.w600,
@@ -393,7 +402,7 @@ class _MenuPageState extends State<MenuPage> {
 
           const SizedBox(height: 16),
 
-          ...filteredItems.map((item) => _buildMenuCard(item: item)),
+          ...filteredItems.map((item) => _buildMenuCard(item)),
 
           /// BOTTOM SPACE
           const SizedBox(height: 60),
@@ -425,7 +434,7 @@ class _MenuPageState extends State<MenuPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                "Meal Schedule",
+                "အစားအစာ ရောင်းချချိန်",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -448,7 +457,7 @@ class _MenuPageState extends State<MenuPage> {
             children: [
               Expanded(
                 child: _buildMealTimeCard(
-                  "Breakfast",
+                  "မနက်စာ",
                   breakfastStart,
                   breakfastEnd,
                   Icons.free_breakfast,
@@ -459,7 +468,7 @@ class _MenuPageState extends State<MenuPage> {
 
               Expanded(
                 child: _buildMealTimeCard(
-                  "Lunch",
+                  "နေ့လယ်စာ",
                   lunchStart,
                   lunchEnd,
                   Icons.lunch_dining,
@@ -615,35 +624,38 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 
-  Widget _buildCategoryChip(String category) {
-    final selected = selectedCategory == category;
+  Widget _buildCategoryChip(String name, int? categoryId) {
+    final selected = selectedCategoryId == categoryId;
 
     return GestureDetector(
       onTap: () {
         setState(() {
-          selectedCategory = category;
+          selectedCategoryId = categoryId;
         });
-        _filterItems();
-      },
 
-      onLongPress: () {
-        _showDeleteCategoryDialog(category);
+        _filterItems();
       },
 
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16),
+
         decoration: BoxDecoration(
           color: selected ? const Color(0xff0F7B94) : Colors.white,
+
           borderRadius: BorderRadius.circular(20),
+
           border: Border.all(
             color: selected ? const Color(0xff0F7B94) : Colors.grey.shade300,
           ),
         ),
+
         child: Center(
           child: Text(
-            category,
+            name,
+
             style: TextStyle(
               color: selected ? Colors.white : Colors.black87,
+
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -652,389 +664,15 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 
-  Widget _buildAddCategoryChip() {
-    return GestureDetector(
-      onTap: _showAddCategoryDialog,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: const Center(
-          child: Icon(
-            Icons.add,
-            color: Colors.black87,
-            size: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showAddCategoryDialog() {
-    categoryController.clear();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Icon
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: const Color(0xff0F7B94).withOpacity(.08),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.category_outlined,
-                    color: Color(0xff0F7B94),
-                    size: 38,
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                const Text(
-                  "Add Category",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-
-                const SizedBox(height: 8),
-
-                Text(
-                  "Create a new menu category",
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
-
-                const SizedBox(height: 20),
-
-                TextField(
-                  controller: categoryController,
-                  decoration: InputDecoration(
-                    hintText: "e.g. Coffee",
-                    prefixIcon: const Icon(
-                      Icons.folder_outlined,
-                      color: Color(0xff0F7B94),
-                    ),
-                    filled: true,
-                    fillColor: const Color(0xffF7F9FA),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(18),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          shape: const StadiumBorder(),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        child: const Text("Cancel"),
-                      ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          final category = categoryController.text.trim();
-
-                          if (category.isNotEmpty &&
-                              !categories.contains(category)) {
-                            setState(() {
-                              categories.add(category);
-                            });
-                          }
-
-                          Navigator.pop(context);
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text("Add"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff0F7B94),
-                          foregroundColor: Colors.white,
-                          shape: const StadiumBorder(),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showDeleteCategoryDialog(String category) {
-    if (category == "All") {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: const Color(0xff0F7B94).withOpacity(.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.lock_outline,
-                      color: Color(0xff0F7B94),
-                      size: 38,
-                    ),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  const Text(
-                    "Cannot Delete",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    '"All" is a system category and cannot be deleted.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff0F7B94),
-                        foregroundColor: Colors.white,
-                        shape: const StadiumBorder(),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text("Got it"),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-
-      return;
-    }
-
-    final hasMenuItems = allItems.any((item) => item["category"] == category);
-
-    if (hasMenuItems) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.warning_amber_rounded,
-                      color: Colors.orange,
-                      size: 38,
-                    ),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  const Text(
-                    "Cannot Delete",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    '"$category" contains menu items.\n\n'
-                    'Move or delete the menu items first.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff0F7B94),
-                        foregroundColor: Colors.white,
-                        shape: const StadiumBorder(),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text("Got it"),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Icon
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(.08),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.delete_outline,
-                    color: Colors.red,
-                    size: 36,
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                const Text(
-                  "Delete Category",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-
-                const SizedBox(height: 8),
-
-                Text(
-                  'Delete "$category"?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
-                ),
-
-                const SizedBox(height: 24),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          shape: const StadiumBorder(),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        child: const Text("Cancel"),
-                      ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            categories.remove(category);
-
-                            if (selectedCategory == category) {
-                              selectedCategory = "All";
-                            }
-
-                            _filterItems();
-                          });
-
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          shape: const StadiumBorder(),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        child: const Text("Delete"),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMenuCard({required Map<String, dynamic> item}) {
-    final name = item["name"] ?? "";
-    final description = item["desc"] ?? "";
-    final imagePath = item["image"];
-    final points = item["points"] ?? "";
-    final mealType = item["mealType"] ?? "";
-    final available = item["available"] ?? false;
-    final stock = item["stock"] ?? 0;
-    final trackStock = item["trackStock"] ?? false;
+  Widget _buildMenuCard(MenuModel item) {
+    final name = item.itemName;
+    final description = item.description;
+    final imagePath = item.imageUrl;
+    final points = item.price;
+    final mealType = "";
+    final trackStock = item.quantity > 0;
+    final available = item.isAvailable;
+    final stock = item.quantity;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -1112,7 +750,7 @@ class _MenuPageState extends State<MenuPage> {
                               ),
                             ),
                             child: const Text(
-                              "SOLD OUT",
+                              "ကုန်သွားပြီ",
                               style: TextStyle(
                                 color: Colors.redAccent,
                                 fontSize: 11,
@@ -1139,7 +777,7 @@ class _MenuPageState extends State<MenuPage> {
                     if (trackStock) ...[
                       const SizedBox(height: 6),
                       Text(
-                        "Stock: $stock",
+                        "လက်ကျန်: $stock",
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -1165,7 +803,7 @@ class _MenuPageState extends State<MenuPage> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            "$points pts",
+                            "$points ပွိုင့်",
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -1182,7 +820,7 @@ class _MenuPageState extends State<MenuPage> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: mealType == "Breakfast"
+                              color: mealType == "မနက်စာ"
                                   ? const Color(0xffFFF7E6)
                                   : const Color(0xffEAF7FA),
                               borderRadius: BorderRadius.circular(20),
@@ -1192,7 +830,7 @@ class _MenuPageState extends State<MenuPage> {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: mealType == "Breakfast"
+                                color: mealType == "မနက်စာ"
                                     ? Colors.orange
                                     : const Color(0xff0F7B94),
                               ),
@@ -1214,29 +852,41 @@ class _MenuPageState extends State<MenuPage> {
               Expanded(
                 child: GestureDetector(
                   onTap: () {
+                    final index = allItems.indexOf(item);
+
+                    if (index == -1) return;
+
                     setState(() {
-                      // ✅ Toggle value
-                      item["available"] = !item["available"];
-                      _filterItems(); // refresh filtered list
+                      allItems[index] = item.copyWith(
+                        isAvailable: !item.isAvailable,
+                      );
+
+                      _filterItems();
                     });
                   },
+
                   child: Container(
                     height: 40,
+
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24),
+
                       border: Border.all(
-                        color: available
+                        color: item.isAvailable
                             ? const Color(0xffCFEFD8)
                             : const Color(0xffFFCACA),
                       ),
                     ),
+
                     child: Center(
                       child: Text(
-                        available ? "Available" : "Sold out",
+                        item.isAvailable ? "ရရှိနိုင်သည်" : "ကုန်သွားပြီ",
+
                         style: TextStyle(
-                          color: available
+                          color: item.isAvailable
                               ? const Color(0xff6DAE83)
                               : Colors.red,
+
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1296,307 +946,577 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   void _showAddMenuSheet() {
-    showModalBottomSheet(
+    nameController.clear();
+    descController.clear();
+    pointsController.clear();
+    stockController.clear();
+    selectedImage = null;
+    selectedCategory = null;
+    selectedMealType = null;
+    isAvailable = true;
+    _showMenuFormSheet();
+  }
+
+  void _showEditMenuSheet(int index) {
+    if (index < 0 || index >= allItems.length) return;
+
+    final item = allItems[index];
+    nameController.text = item.itemName;
+    descController.text = item.description;
+    pointsController.text = item.price;
+    stockController.text = item.quantity.toString();
+    selectedImage = item.imageUrl != null ? File(item.imageUrl!) : null;
+    selectedMealType = null;
+    isAvailable = item.isAvailable;
+
+    if (categories.isNotEmpty) {
+      selectedCategory = categories.cast<CategoryModel?>().firstWhere(
+        (category) => category?.categoryId == item.categoryId,
+        orElse: () => categories.first,
+      );
+    } else {
+      selectedCategory = null;
+    }
+
+    _showMenuFormSheet(editIndex: index);
+  }
+
+  void _showMenuFormSheet({int? editIndex}) {
+    final bool isEditing = editIndex != null;
+
+    showGeneralDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-      ),
-      builder: (context) {
+      barrierDismissible: false,
+      barrierLabel: 'မီနူးဖောင်',
+      barrierColor: Colors.black.withValues(alpha: 0.25),
+      transitionDuration: const Duration(milliseconds: 280),
+      pageBuilder: (sheetContext, animation, secondaryAnimation) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 20,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-              ),
-              child: SingleChildScrollView(
+            final bool stockEnabled = isStockItem;
+
+            return Material(
+              color: const Color(0xffF8FAFC),
+              child: SafeArea(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// HEADER
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Add menu item",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(8, 10, 16, 12),
+                      decoration: const BoxDecoration(color: Color(0xff0F7B94)),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => Navigator.pop(sheetContext),
+                            icon: const Icon(Icons.arrow_back_rounded),
+                            color: Colors.white,
+                            tooltip: 'နောက်သို့',
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          _pickImage(setModalState);
-                        },
-                        child: Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: Colors.grey.shade300),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              isEditing
+                                  ? 'မီနူး ပြင်ဆင်ရန်'
+                                  : 'မီနူးအသစ် ထည့်ရန်',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
                           ),
-                          child: selectedImage == null
-                              ? const Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.add_photo_alternate_outlined,
-                                      size: 38,
-                                      color: Color(0xff0F7B94),
-                                    ),
-                                    SizedBox(height: 6),
-                                    Text("Add image"),
-                                  ],
-                                )
-                              : ClipRRect(
-                                  borderRadius: BorderRadius.circular(24),
-                                  child: Image.file(
-                                    selectedImage!,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                        ),
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              isEditing
+                                  ? Icons.edit_rounded
+                                  : Icons.add_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-
-                    const SizedBox(height: 20),
-
-                    /// NAME
-                    _buildInput(nameController, "Name", "e.g. Mohinga"),
-
-                    const SizedBox(height: 12),
-
-                    /// DESCRIPTION
-                    _buildInput(
-                      descController,
-                      "Description",
-                      "Short description",
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    /// CATEGORY
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Category",
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: EdgeInsets.fromLTRB(
+                          20,
+                          0,
+                          20,
+                          MediaQuery.viewInsetsOf(context).bottom + 26,
                         ),
-                        const SizedBox(height: 6),
-
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade400),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: selectedCategory,
-                              isExpanded: true,
-                              items: categories
-                                  .map(
-                                    (cat) => DropdownMenuItem(
-                                      value: cat,
-                                      child: Text(cat),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 18),
+                            const SizedBox(height: 20),
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(0xffE2E8F0),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(
+                                      alpha: 0.035,
                                     ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) {
-                                setModalState(() {
-                                  selectedCategory = value!;
-
-                                  if (isStockItem) {
-                                    selectedMealType = null;
-                                  } else {
-                                    stockController.clear();
-                                  }
-                                });
-                              },
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => _pickImage(setModalState),
+                                    child: Container(
+                                      width: 92,
+                                      height: 92,
+                                      clipBehavior: Clip.antiAlias,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xffEAF6F8),
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      child: selectedImage != null
+                                          ? Image.file(
+                                              selectedImage!,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : const Icon(
+                                              Icons
+                                                  .add_photo_alternate_outlined,
+                                              color: Color(0xff0F7B94),
+                                              size: 34,
+                                            ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'မီနူးဓာတ်ပုံ',
+                                          style: TextStyle(
+                                            color: Color(0xff0F172A),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        const Text(
+                                          'ရှင်းလင်းသော စတုရန်းပုံကို ရွေးချယ်ပါ',
+                                          style: TextStyle(
+                                            color: Color(0xff64748B),
+                                            fontSize: 10.5,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        SizedBox(
+                                          height: 36,
+                                          child: OutlinedButton.icon(
+                                            onPressed: () =>
+                                                _pickImage(setModalState),
+                                            icon: const Icon(
+                                              Icons.upload_rounded,
+                                              size: 17,
+                                            ),
+                                            label: Text(
+                                              selectedImage == null
+                                                  ? 'ပုံရွေးချယ်ရန်'
+                                                  : 'ပုံပြောင်းရန်',
+                                            ),
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: const Color(
+                                                0xff0F7B94,
+                                              ),
+                                              side: const BorderSide(
+                                                color: Color(0xffB9DDE4),
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(11),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    /// MEAL TYPE (OPTIONAL)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Meal Type (Optional)",
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: isStockItem
-                                ? Colors.grey.shade100
-                                : Colors.white,
-                            border: Border.all(color: Colors.grey.shade400),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String?>(
-                              value: isStockItem ? null : selectedMealType,
-                              isExpanded: true,
-                              hint: const Text("No meal type"),
-                              items: const [
-                                DropdownMenuItem<String?>(
-                                  value: null,
-                                  child: Text("No meal type"),
-                                ),
-
-                                DropdownMenuItem<String?>(
-                                  value: "Breakfast",
-                                  child: Text("Breakfast"),
-                                ),
-
-                                DropdownMenuItem<String?>(
-                                  value: "Lunch",
-                                  child: Text("Lunch"),
-                                ),
-                              ],
-                              onChanged: isStockItem
-                                  ? null
-                                  : (value) {
+                            const SizedBox(height: 24),
+                            const Text(
+                              'အခြေခံအချက်အလက်',
+                              style: TextStyle(
+                                color: Color(0xff0F172A),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _menuTextField(
+                              controller: nameController,
+                              label: 'မီနူးအမည်',
+                              hint: 'ဥပမာ - မုန့်ဟင်းခါး',
+                              icon: Icons.restaurant_rounded,
+                            ),
+                            const SizedBox(height: 14),
+                            _menuTextField(
+                              controller: descController,
+                              label: 'ဖော်ပြချက်',
+                              hint: 'မီနူးအကြောင်း အကျဉ်းချုပ်ရေးပါ',
+                              icon: Icons.subject_rounded,
+                              maxLines: 3,
+                            ),
+                            const SizedBox(height: 14),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _menuDropdownField<CategoryModel>(
+                                    label: 'အမျိုးအစား',
+                                    icon: Icons.grid_view_rounded,
+                                    value: categories.contains(selectedCategory)
+                                        ? selectedCategory
+                                        : null,
+                                    hint: 'ရွေးချယ်ပါ',
+                                    items: categories
+                                        .map(
+                                          (category) =>
+                                              DropdownMenuItem<CategoryModel>(
+                                                value: category,
+                                                child: Text(
+                                                  category.categoryName,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                        )
+                                        .toList(),
+                                    onChanged: (value) {
                                       setModalState(() {
-                                        selectedMealType = value;
+                                        selectedCategory = value;
+                                        if (isStockItem) {
+                                          selectedMealType = null;
+                                        } else {
+                                          stockController.clear();
+                                        }
                                       });
                                     },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _menuDropdownField<String?>(
+                                    label: 'အစားအစာအချိန်',
+                                    icon: Icons.schedule_rounded,
+                                    value: stockEnabled
+                                        ? null
+                                        : selectedMealType,
+                                    hint: 'မသတ်မှတ်ပါ',
+                                    enabled: !stockEnabled,
+                                    items: const [
+                                      DropdownMenuItem<String?>(
+                                        value: null,
+                                        child: Text('မသတ်မှတ်ပါ'),
+                                      ),
+                                      DropdownMenuItem<String?>(
+                                        value: 'မနက်စာ',
+                                        child: Text('မနက်စာ'),
+                                      ),
+                                      DropdownMenuItem<String?>(
+                                        value: 'နေ့လယ်စာ',
+                                        child: Text('နေ့လယ်စာ'),
+                                      ),
+                                    ],
+                                    onChanged: stockEnabled
+                                        ? null
+                                        : (value) {
+                                            setModalState(() {
+                                              selectedMealType = value;
+                                            });
+                                          },
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    /// POINTS
-                    _buildInput(pointsController, "Points", "100"),
-
-                    const SizedBox(height: 12),
-
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Stock Quantity",
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        TextField(
-                          controller: stockController,
-                          enabled: isStockItem,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            hintText: "24",
-                            filled: true,
-                            fillColor: isStockItem
-                                ? Colors.white
-                                : Colors.grey.shade100,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
+                            const SizedBox(height: 22),
+                            const Divider(color: Color(0xffE2E8F0)),
+                            const SizedBox(height: 18),
+                            const Text(
+                              'ပွိုင့်နှင့် ရရှိနိုင်မှု',
+                              style: TextStyle(
+                                color: Color(0xff0F172A),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _menuTextField(
+                                    controller: pointsController,
+                                    label: 'ပွိုင့်ဈေးနှုန်း',
+                                    hint: '100',
+                                    icon: Icons.stars_rounded,
+                                    keyboardType: TextInputType.number,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _menuTextField(
+                                    controller: stockController,
+                                    label: 'လက်ကျန်အရေအတွက်',
+                                    hint: stockEnabled ? '24' : 'မလိုအပ်ပါ',
+                                    icon: Icons.inventory_2_rounded,
+                                    keyboardType: TextInputType.number,
+                                    enabled: stockEnabled,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            InkWell(
+                              onTap: () {
+                                setModalState(() {
+                                  isAvailable = !isAvailable;
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(18),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  color: isAvailable
+                                      ? const Color(0xffEAF8F2)
+                                      : const Color(0xffFFF3F0),
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color: isAvailable
+                                        ? const Color(0xffA7E6CC)
+                                        : const Color(0xffF8C5BA),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      isAvailable
+                                          ? Icons.check_circle_rounded
+                                          : Icons.do_not_disturb_on_rounded,
+                                      color: isAvailable
+                                          ? const Color(0xff11996A)
+                                          : const Color(0xffE35D45),
+                                      size: 25,
+                                    ),
+                                    const SizedBox(width: 11),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            isAvailable
+                                                ? 'ယခု ရောင်းချနိုင်သည်'
+                                                : 'ယခု မရောင်းချပါ',
+                                            style: const TextStyle(
+                                              color: Color(0xff0F172A),
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            isAvailable
+                                                ? 'ကျောင်းသားများ၏ မီနူးတွင် ပြသမည်'
+                                                : 'မီနူးကို ယာယီပိတ်ထားမည်',
+                                            style: const TextStyle(
+                                              color: Color(0xff64748B),
+                                              fontSize: 10.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Switch.adaptive(
+                                      value: isAvailable,
+                                      activeColor: const Color(0xff0F7B94),
+                                      onChanged: (value) {
+                                        setModalState(() {
+                                          isAvailable = value;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 54,
+                              child: ElevatedButton.icon(
+                                onPressed: isAddingMenu
+                                    ? null
+                                    : () async {
+                                        if (nameController.text
+                                            .trim()
+                                            .isEmpty) {
+                                          _showMenuMessage(
+                                            sheetContext,
+                                            'မီနူးအမည် ထည့်ပါ',
+                                          );
+                                          return;
+                                        }
+                                        if (selectedCategory == null) {
+                                          _showMenuMessage(
+                                            sheetContext,
+                                            'အမျိုးအစား ရွေးချယ်ပါ',
+                                          );
+                                          return;
+                                        }
+                                        if (pointsController.text
+                                            .trim()
+                                            .isEmpty) {
+                                          _showMenuMessage(
+                                            sheetContext,
+                                            'ပွိုင့်ပမာဏ ထည့်ပါ',
+                                          );
+                                          return;
+                                        }
 
-                    const SizedBox(height: 12),
+                                        if (isEditing) {
+                                          final item = allItems[editIndex];
+                                          setState(() {
+                                            allItems[editIndex] = item.copyWith(
+                                              categoryId:
+                                                  selectedCategory!.categoryId,
+                                              itemName: nameController.text
+                                                  .trim(),
+                                              description: descController.text
+                                                  .trim(),
+                                              price: pointsController.text
+                                                  .trim(),
+                                              quantity:
+                                                  int.tryParse(
+                                                    stockController.text,
+                                                  ) ??
+                                                  item.quantity,
+                                              isAvailable: isAvailable,
+                                              imageUrl:
+                                                  selectedImage?.path ??
+                                                  item.imageUrl,
+                                            );
+                                            _filterItems();
+                                          });
+                                          if (sheetContext.mounted) {
+                                            Navigator.pop(sheetContext);
+                                          }
+                                          return;
+                                        }
 
-                    /// AVAILABLE
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: isAvailable,
-                          onChanged: (value) {
-                            setModalState(() {
-                              isAvailable = value!;
-                            });
-                          },
-                        ),
-                        const Text("Available for sale"),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// ADD BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff0F7B94),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            allItems.add({
-                              "name": nameController.text,
-                              "desc": descController.text,
-                              "image": selectedImage?.path,
-                              "category": selectedCategory,
-                              "mealType": selectedMealType,
-                              "points": pointsController.text,
-                              "stock": int.tryParse(stockController.text) ?? 0,
-                              "trackStock": true,
-                              "available": isAvailable,
-                            });
-
-                            _filterItems();
-                          });
-
-                          nameController.clear();
-                          descController.clear();
-                          pointsController.clear();
-
-                          selectedMealType = null;
-                          selectedCategory = "Main";
-                          isAvailable = true;
-
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          "Add to menu",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                                        setModalState(() {
+                                          isAddingMenu = true;
+                                        });
+                                        try {
+                                          await ref
+                                              .read(menuProvider.notifier)
+                                              .addMenu(
+                                                categoryId: selectedCategory!
+                                                    .categoryId,
+                                                itemName: nameController.text
+                                                    .trim(),
+                                                description: descController.text
+                                                    .trim(),
+                                                price: pointsController.text
+                                                    .trim(),
+                                                quantity:
+                                                    int.tryParse(
+                                                      stockController.text,
+                                                    ) ??
+                                                    0,
+                                                available: isAvailable,
+                                                image: selectedImage,
+                                              );
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(
+                                            this.context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'မီနူးကို အောင်မြင်စွာ ထည့်ပြီးပါပြီ',
+                                              ),
+                                            ),
+                                          );
+                                          if (sheetContext.mounted) {
+                                            Navigator.pop(sheetContext);
+                                          }
+                                        } catch (error) {
+                                          if (sheetContext.mounted) {
+                                            _showMenuMessage(
+                                              sheetContext,
+                                              error.toString(),
+                                            );
+                                          }
+                                        } finally {
+                                          if (mounted) {
+                                            setModalState(() {
+                                              isAddingMenu = false;
+                                            });
+                                          }
+                                        }
+                                      },
+                                icon: isAddingMenu
+                                    ? const SizedBox(
+                                        width: 19,
+                                        height: 19,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.2,
+                                        ),
+                                      )
+                                    : Icon(
+                                        isEditing
+                                            ? Icons.done_rounded
+                                            : Icons.add_rounded,
+                                      ),
+                                label: Text(
+                                  isEditing
+                                      ? 'ပြောင်းလဲမှုများ သိမ်းရန်'
+                                      : 'မီနူးအသစ် ထည့်ရန်',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  elevation: 0,
+                                  backgroundColor: const Color(0xff0F7B94),
+                                  foregroundColor: Colors.white,
+                                  disabledBackgroundColor: const Color(
+                                    0xff94A3B8,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -1607,345 +1527,232 @@ class _MenuPageState extends State<MenuPage> {
           },
         );
       },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(curved),
+          child: child,
+        );
+      },
     );
   }
 
-  Widget _buildInput(
-    TextEditingController controller,
-    String label,
-    String hint,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _menuSectionTitle({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Row(
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xffE6F4F7),
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Icon(icon, color: const Color(0xff0F7B94), size: 19),
         ),
-        const SizedBox(height: 6),
-        TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            hintText: hint,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xff0F172A),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  color: Color(0xff64748B),
+                  fontSize: 10.5,
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  void _showEditMenuSheet(int index) {
-    final item = allItems[index];
-
-    final imagePath = item["image"];
-
-    if (imagePath != null) {
-      selectedImage = File(imagePath);
-    } else {
-      selectedImage = null;
-    }
-
-    selectedMealType = item["mealType"];
-    selectedCategory = item["category"] ?? "Main";
-
-    // ✅ preload values
-    nameController.text = item["name"] ?? "";
-    descController.text = item["desc"] ?? "";
-    pointsController.text = item["points"] ?? "";
-    stockController.text = (item["stock"] ?? 0).toString();
-    selectedCategory = item["category"] ?? "Main";
-    isAvailable = item["available"] ?? true;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+  Widget _menuFormCard({required List<Widget> children}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xffE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 20,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      child: Column(children: children),
+    );
+  }
+
+  Widget _menuTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    bool enabled = true,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xff475569),
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 7),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          enabled: enabled,
+          style: const TextStyle(
+            color: Color(0xff0F172A),
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(
+              color: Color(0xff94A3B8),
+              fontSize: 12.5,
+              fontWeight: FontWeight.w400,
+            ),
+            prefixIcon: Icon(icon, color: const Color(0xff0F7B94), size: 19),
+            filled: true,
+            fillColor: enabled
+                ? const Color(0xffF8FAFC)
+                : const Color(0xffF1F5F9),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xffE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xffE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: Color(0xff0F7B94),
+                width: 1.5,
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Edit menu item",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xffE2E8F0)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-                    const SizedBox(height: 16),
-
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          _pickImage(setModalState);
-                        },
-                        child: Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: Colors.grey.shade300),
-                          ),
-                          child: selectedImage == null
-                              ? const Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.add_photo_alternate_outlined,
-                                      size: 38,
-                                      color: Color(0xff0F7B94),
-                                    ),
-                                    SizedBox(height: 6),
-                                    Text("Add image"),
-                                  ],
-                                )
-                              : ClipRRect(
-                                  borderRadius: BorderRadius.circular(24),
-                                  child: Image.file(
-                                    selectedImage!,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _buildInput(nameController, "Name", "e.g. Mohinga"),
-                    const SizedBox(height: 12),
-
-                    _buildInput(
-                      descController,
-                      "Description",
-                      "Short description",
-                    ),
-                    const SizedBox(height: 12),
-
-                    // ✅ CATEGORY DROPDOWN
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("Category"),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade400),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: selectedCategory,
-                              isExpanded: true,
-                              items: categories
-                                  .map(
-                                    (cat) => DropdownMenuItem(
-                                      value: cat,
-                                      child: Text(cat),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) {
-                                setModalState(() {
-                                  selectedCategory = value!;
-
-                                  if (isStockItem) {
-                                    selectedMealType = null;
-                                  } else {
-                                    stockController.clear();
-                                  }
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("Meal Type (Optional)"),
-                        const SizedBox(height: 6),
-
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: isStockItem
-                                ? Colors.grey.shade100
-                                : Colors.white,
-                            border: Border.all(color: Colors.grey.shade400),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String?>(
-                              value: isStockItem ? null : selectedMealType,
-                              isExpanded: true,
-                              items: const [
-                                DropdownMenuItem<String?>(
-                                  value: null,
-                                  child: Text("No meal type"),
-                                ),
-
-                                DropdownMenuItem(
-                                  value: "Breakfast",
-                                  child: Text("Breakfast"),
-                                ),
-
-                                DropdownMenuItem(
-                                  value: "Lunch",
-                                  child: Text("Lunch"),
-                                ),
-                              ],
-
-                              onChanged: isStockItem
-                                  ? null
-                                  : (value) {
-                                      setModalState(() {
-                                        selectedMealType = value;
-                                      });
-                                    },
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _buildInput(pointsController, "Points", "100"),
-
-                    const SizedBox(height: 12),
-
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Stock Quantity",
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        TextField(
-                          controller: stockController,
-                          enabled: isStockItem,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            hintText: "24",
-                            filled: true,
-                            fillColor: isStockItem
-                                ? Colors.white
-                                : Colors.grey.shade100,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: isAvailable,
-                          onChanged: (value) {
-                            setState(() {
-                              isAvailable = value!;
-                            });
-                          },
-                        ),
-                        const Text("Available for sale"),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // ✅ SAVE BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff0F7B94),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            allItems[index] = {
-                              "name": nameController.text,
-                              "desc": descController.text,
-                              "image": selectedImage?.path,
-                              "category": selectedCategory,
-
-                              "mealType": isStockItem ? null : selectedMealType,
-
-                              "points": pointsController.text,
-
-                              "stock": isStockItem
-                                  ? int.tryParse(stockController.text) ?? 0
-                                  : item["stock"],
-
-                              "trackStock": isStockItem,
-                              "available": isAvailable,
-                            };
-
-                            _filterItems();
-                          });
-
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          "Save changes",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+  Widget _menuDropdownField<T>({
+    required String label,
+    required IconData icon,
+    required T? value,
+    required String hint,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?>? onChanged,
+    bool enabled = true,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xff475569),
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 7),
+        DropdownButtonFormField<T>(
+          value: value,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded),
+          hint: Text(
+            hint,
+            style: const TextStyle(color: Color(0xff94A3B8), fontSize: 12.5),
+          ),
+          items: items,
+          onChanged: enabled ? onChanged : null,
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: const Color(0xff0F7B94), size: 19),
+            filled: true,
+            fillColor: enabled
+                ? const Color(0xffF8FAFC)
+                : const Color(0xffF1F5F9),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 13,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xffE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xffE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: Color(0xff0F7B94),
+                width: 1.5,
               ),
-            );
-          },
-        );
-      },
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xffE2E8F0)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showMenuMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xff0F7B94),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 
@@ -1958,19 +1765,17 @@ class _MenuPageState extends State<MenuPage> {
             borderRadius: BorderRadius.circular(20),
           ),
           title: const Text(
-            "Delete item",
+            "မီနူး ဖျက်ရန်",
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
-          content: const Text(
-            "Are you sure you want to delete this menu item?",
-          ),
+          content: const Text("ဤမီနူးကို ဖျက်ရန် သေချာပါသလား။"),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // ❌ Cancel
               },
               child: const Text(
-                "Cancel",
+                "မလုပ်တော့ပါ",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
@@ -1991,7 +1796,7 @@ class _MenuPageState extends State<MenuPage> {
                 Navigator.pop(context); // close dialog
               },
               child: const Text(
-                "Delete",
+                "ဖျက်မည်",
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -2049,7 +1854,7 @@ class _MenuPageState extends State<MenuPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Meal Schedule",
+                      "အစားအစာ ရောင်းချချိန်",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -2060,7 +1865,7 @@ class _MenuPageState extends State<MenuPage> {
 
                     /// Breakfast
                     const Text(
-                      "Breakfast",
+                      "မနက်စာ",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -2073,7 +1878,7 @@ class _MenuPageState extends State<MenuPage> {
                       children: [
                         Expanded(
                           child: _buildTimePickerTile(
-                            label: "Start",
+                            label: "စတင်ချိန်",
                             value: breakfastStart.format(context),
                             onTap: () {
                               pickTime(
@@ -2089,7 +1894,7 @@ class _MenuPageState extends State<MenuPage> {
 
                         Expanded(
                           child: _buildTimePickerTile(
-                            label: "End",
+                            label: "ပြီးဆုံးချိန်",
                             value: breakfastEnd.format(context),
                             onTap: () {
                               pickTime(
@@ -2107,7 +1912,7 @@ class _MenuPageState extends State<MenuPage> {
 
                     /// Lunch
                     const Text(
-                      "Lunch",
+                      "နေ့လယ်စာ",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -2120,7 +1925,7 @@ class _MenuPageState extends State<MenuPage> {
                       children: [
                         Expanded(
                           child: _buildTimePickerTile(
-                            label: "Start",
+                            label: "စတင်ချိန်",
                             value: lunchStart.format(context),
                             onTap: () {
                               pickTime(
@@ -2136,7 +1941,7 @@ class _MenuPageState extends State<MenuPage> {
 
                         Expanded(
                           child: _buildTimePickerTile(
-                            label: "End",
+                            label: "ပြီးဆုံးချိန်",
                             value: lunchEnd.format(context),
                             onTap: () {
                               pickTime(
@@ -2166,7 +1971,7 @@ class _MenuPageState extends State<MenuPage> {
                           Navigator.pop(context);
                         },
                         child: const Text(
-                          "Save Changes",
+                          "ပြောင်းလဲမှုများ သိမ်းရန်",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16,

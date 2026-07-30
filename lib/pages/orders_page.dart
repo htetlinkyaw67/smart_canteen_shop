@@ -12,6 +12,7 @@ import '../data/order_data.dart';
 import '../data/app_badges.dart';
 import '../widgets/page_header.dart';
 import 'notification_page.dart';
+import '../widgets/orders/order_completed_dialog.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -122,44 +123,61 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   void _showOrderMatched(OrderItem order) {
-    final messenger = ScaffoldMessenger.of(context);
+    final pageContext = context;
 
     showDialog(
-      context: context,
-      builder: (_) => OrderMatchedDialog(
-        order: order,
-        onComplete: () {
-          Navigator.pop(context);
+      context: pageContext,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return OrderMatchedDialog(
+          order: order,
+          onComplete: () {
+            // Close OrderMatchedDialog using its own context.
+            Navigator.of(dialogContext).pop();
 
-          setState(() {
-            order.status = OrderStatus.completed;
+            // Update the order and badge.
+            setState(() {
+              order.status = OrderStatus.completed;
 
-            final items = order.items.split('•');
+              final items = order.items.split('•');
 
-            for (final item in items) {
-              final cleaned = item.trim();
+              for (final item in items) {
+                final cleaned = item.trim();
 
-              if (cleaned.contains(' x')) {
-                final parts = cleaned.split(' x');
+                if (cleaned.contains(' x')) {
+                  final parts = cleaned.split(' x');
+                  final itemName = parts[0].trim();
+                  final quantity = int.tryParse(parts[1].trim()) ?? 1;
 
-                final itemName = parts[0].trim();
-                final quantity = int.tryParse(parts[1]) ?? 1;
-
-                MenuInventory.reduceStock(itemName, quantity);
+                  MenuInventory.reduceStock(itemName, quantity);
+                }
               }
-            }
-          });
 
-          AppBadges.ordersCount.value = orders
-              .where(
-                (e) =>
-                    e.status == OrderStatus.pending ||
-                    e.status == OrderStatus.preparing ||
-                    e.status == OrderStatus.ready,
-              )
-              .length;
-        },
-      ),
+              AppBadges.ordersCount.value = orders
+                  .where(
+                    (item) =>
+                        item.status == OrderStatus.pending ||
+                        item.status == OrderStatus.preparing ||
+                        item.status == OrderStatus.ready,
+                  )
+                  .length;
+            });
+
+            // Wait until the first dialog has completely closed.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+
+              showDialog(
+                context: pageContext,
+                barrierDismissible: false,
+                builder: (completedDialogContext) {
+                  return const OrderCompletedDialog();
+                },
+              );
+            });
+          },
+        );
+      },
     );
   }
 
@@ -197,7 +215,7 @@ class _OrdersPageState extends State<OrdersPage> {
     }).toList();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+      padding: const EdgeInsets.fromLTRB(14, 15, 14, 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -205,7 +223,7 @@ class _OrdersPageState extends State<OrdersPage> {
 
           PageHeader(
             title: "Moe's Burmese Kitchen",
-            subtitle: "Track customer orders",
+            subtitle: "ဈေးဝယ်အော်ဒါစီမံခြင်း",
             icon: Icons.inventory_2_outlined,
             isShopOpen: _isShopOpen,
             onStatusChanged: (isOpen) {
@@ -216,7 +234,7 @@ class _OrdersPageState extends State<OrdersPage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    _isShopOpen ? "Shop is now OPEN" : "Shop is now CLOSED",
+                    _isShopOpen ? "ဆိုင်ဖွင့်ထားပါပြီ" : "ဆိုင်ပိတ်ထားပါပြီ",
                   ),
                   duration: const Duration(seconds: 2),
                   backgroundColor: _isShopOpen ? Colors.green : Colors.red,
@@ -260,25 +278,11 @@ class _OrdersPageState extends State<OrdersPage> {
                 children: [
                   // TOP RIGHT BIG CIRCLE
                   Positioned(
-                    top: -50,
+                    top: -90,
                     right: -55,
                     child: Container(
                       width: 180,
                       height: 180,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(.08),
-                      ),
-                    ),
-                  ),
-
-                  // SMALL ACCENT CIRCLE
-                  Positioned(
-                    top: 55,
-                    right: 95,
-                    child: Container(
-                      width: 65,
-                      height: 65,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.white.withOpacity(.08),
@@ -291,29 +295,8 @@ class _OrdersPageState extends State<OrdersPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(.18),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Text(
-                            "$readyCount ready for pickup",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 15),
-
                         const Text(
-                          "Orders",
+                          "အော်ဒါများ",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 32,
@@ -325,7 +308,7 @@ class _OrdersPageState extends State<OrdersPage> {
                         const SizedBox(height: 5),
 
                         Text(
-                          "$activeCount active orders today",
+                          "ယနေ့ လုပ်ဆောင်နေသော အော်ဒါ $activeCount ခု",
                           style: TextStyle(
                             color: Colors.white.withOpacity(.9),
                             fontSize: 15,
@@ -362,7 +345,7 @@ class _OrdersPageState extends State<OrdersPage> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      "Ready",
+                                      "အဆင်သင့်ဖြစ်ပြီး",
                                       style: TextStyle(
                                         color: Colors.white.withOpacity(.85),
                                         fontSize: 12,
@@ -401,7 +384,7 @@ class _OrdersPageState extends State<OrdersPage> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      "Completed",
+                                      "ပြီးဆုံးသွားပြီး",
                                       style: TextStyle(
                                         color: Colors.white.withOpacity(.85),
                                         fontSize: 12,
@@ -427,7 +410,7 @@ class _OrdersPageState extends State<OrdersPage> {
                             },
                             icon: const Icon(Icons.qr_code_scanner_rounded),
                             label: const Text(
-                              "Scan Customer Pickup",
+                              "QR ကို စကင်ဖတ်ရန်",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
@@ -451,7 +434,7 @@ class _OrdersPageState extends State<OrdersPage> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
           OrdersFilterTabs(
             selectedIndex: selectedTab,
@@ -466,7 +449,7 @@ class _OrdersPageState extends State<OrdersPage> {
             },
           ),
 
-          const SizedBox(height: 18),
+          const SizedBox(height: 15),
 
           Container(
             height: 48,
@@ -482,7 +465,7 @@ class _OrdersPageState extends State<OrdersPage> {
                 });
               },
               decoration: InputDecoration(
-                hintText: "Search orders...",
+                hintText: "အော်ဒါများ ရှာဖွေရန်...",
                 hintStyle: TextStyle(color: Colors.grey.shade500),
                 prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
                 border: InputBorder.none,
@@ -490,7 +473,7 @@ class _OrdersPageState extends State<OrdersPage> {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
           ...filteredOrders.map(
             (order) => OrderCard(
@@ -517,7 +500,7 @@ class _OrdersPageState extends State<OrdersPage> {
           ),
 
           /// BOTTOM SPACE
-          const SizedBox(height: 60),
+          const SizedBox(height: 70),
         ],
       ),
     );

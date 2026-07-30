@@ -48,14 +48,14 @@ class SeatStatusSheet extends StatelessWidget {
 
               const SizedBox(height: 4),
               const Text(
-                'Table status',
+                'စားပွဲအခြေအနေ',
                 style: TextStyle(color: Color(0xff89969C), fontSize: 12),
               ),
 
               const SizedBox(height: 6),
 
               Text(
-                "Current status: ${seat.statusLabel}",
+                "လက်ရှိအခြေအနေ: ${seat.statusLabel}",
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
               ),
 
@@ -64,7 +64,7 @@ class SeatStatusSheet extends StatelessWidget {
               _statusTile(
                 context,
                 SeatStatus.available,
-                "Available",
+                "အားလပ်",
                 const Color(0xff4CD778),
                 Icons.check_circle_outline,
               ),
@@ -72,7 +72,7 @@ class SeatStatusSheet extends StatelessWidget {
               _statusTile(
                 context,
                 SeatStatus.occupied,
-                "Occupied",
+                "အသုံးပြုနေ",
                 Colors.redAccent,
                 Icons.people_outline,
               ),
@@ -80,7 +80,7 @@ class SeatStatusSheet extends StatelessWidget {
               _statusTile(
                 context,
                 SeatStatus.reserved,
-                "Reserved",
+                "ကြိုတင်မှာထား",
                 Colors.amber,
                 Icons.schedule_outlined,
               ),
@@ -88,7 +88,7 @@ class SeatStatusSheet extends StatelessWidget {
               _statusTile(
                 context,
                 SeatStatus.disabled,
-                "Disabled",
+                "အသုံးမပြုနိုင်",
                 Colors.grey,
                 Icons.block_outlined,
               ),
@@ -99,7 +99,7 @@ class SeatStatusSheet extends StatelessWidget {
 
               ListTile(
                 leading: const Icon(Icons.edit, color: Color(0xff0F7B94)),
-                title: const Text("Rename Table"),
+                title: const Text("စားပွဲအမည်ပြောင်းမည်"),
                 onTap: () {
                   Navigator.pop(context);
                   onRename();
@@ -109,7 +109,7 @@ class SeatStatusSheet extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: const Text(
-                  "Delete Table",
+                  "စားပွဲဖျက်မည်",
                   style: TextStyle(color: Colors.red),
                 ),
                 onTap: () {

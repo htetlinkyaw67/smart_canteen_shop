@@ -40,7 +40,7 @@ class SeatLayoutCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Table Layout',
+                      'စားပွဲနေရာချထားမှု',
                       style: TextStyle(
                         color: Color(0xff172B35),
                         fontSize: 18,
@@ -49,7 +49,7 @@ class SeatLayoutCard extends StatelessWidget {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      'Each table has 4 seats • Tap a table to update its status',
+                      'စားပွဲတစ်လုံးတွင် ထိုင်ခုံ ၄ လုံးရှိသည်',
                       style: TextStyle(color: Color(0xff839198), fontSize: 12),
                     ),
                   ],
@@ -77,10 +77,10 @@ class SeatLayoutCard extends StatelessWidget {
                 ),
                 SizedBox(width: 7),
                 Text(
-                  'COUNTER',
+                  'ကောင်တာ',
                   style: TextStyle(
                     color: Color(0xff7D8B92),
-                    fontSize: 12,
+                    fontSize: 15,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.2,
                   ),
@@ -115,10 +115,10 @@ class SeatLayoutCard extends StatelessWidget {
             spacing: 14,
             runSpacing: 12,
             children: [
-              _legend(const Color(0xff25B95B), 'Available'),
-              _legend(const Color(0xffF05D68), 'Occupied'),
-              _legend(const Color(0xffEFB62F), 'Reserved'),
-              _legend(const Color(0xff899399), 'Disabled'),
+              _legend(const Color(0xff25B95B), 'အားလပ်'),
+              _legend(const Color(0xffF05D68), 'အသုံးပြုနေ'),
+              _legend(const Color(0xffEFB62F), 'ကြိုတင်မှာထား'),
+              _legend(const Color(0xff899399), 'အသုံးမပြုနိုင်'),
             ],
           ),
         ],
@@ -146,18 +146,6 @@ class SeatLayoutCard extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              Positioned(
-                top: 9,
-                right: 9,
-                child: Container(
-                  width: 7,
-                  height: 7,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

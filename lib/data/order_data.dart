@@ -10,7 +10,8 @@ class OrderData {
       timeAgo: "1h ago",
       points: 8500,
       status: OrderStatus.ready,
-      note: "Less spicy",
+      note: "အစပ်လျှော့",
+      tableNumber: "စားပွဲ ၅",
     ),
 
     OrderItem(
@@ -21,6 +22,7 @@ class OrderData {
       timeAgo: "48m ago",
       points: 7200,
       status: OrderStatus.ready,
+      tableNumber: "စားပွဲ ၁၂",
     ),
 
     OrderItem(

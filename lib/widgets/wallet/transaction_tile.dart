@@ -120,7 +120,7 @@ class TransactionTile extends StatelessWidget {
                       ),
                     ),
                     const Text(
-                      'points',
+                      'ပွိုင့်',
                       style: TextStyle(
                         color: Color(0xff94A3B8),
                         fontSize: 9.5,
@@ -164,7 +164,7 @@ class TransactionTile extends StatelessWidget {
     final formattedTime = _formatTime(dateTime);
 
     if (difference == 0) return formattedTime;
-    if (difference == 1) return 'Yesterday';
+    if (difference == 1) return 'မနေ့က';
 
     return '${_monthName(dateTime.month)} ${dateTime.day}';
   }

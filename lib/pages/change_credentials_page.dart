@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../models/shop_user.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_canteen_shop/provider/auth_provider.dart';
 import 'home_page.dart';
 
-class ChangeCredentialsPage extends StatefulWidget {
+class ChangeCredentialsPage extends ConsumerStatefulWidget {
   const ChangeCredentialsPage({super.key});
 
   @override
-  State<ChangeCredentialsPage> createState() => _ChangeCredentialsPageState();
+  ConsumerState<ChangeCredentialsPage> createState()  => _ChangeCredentialsPageState();
 }
 
-class _ChangeCredentialsPageState extends State<ChangeCredentialsPage> {
+class _ChangeCredentialsPageState
+    extends ConsumerState<ChangeCredentialsPage> {
   int _currentStep = 1;
 
   // Step 1 Controllers (PIN)
@@ -51,54 +53,120 @@ class _ChangeCredentialsPageState extends State<ChangeCredentialsPage> {
     }
   }
 
-  void _processPinChange() {
-    if (currentPinController.text != ShopUser.pin) {
-      _showSnackBar("Current PIN is incorrect");
-      return;
-    }
+  Future<void> _processPinChange() async {
 
-    if (newPinController.text.length != 6) {
-      _showSnackBar("PIN must be 6 digits");
-      return;
-    }
+  final currentPin = currentPinController.text.trim();
+  final newPin = newPinController.text.trim();
+  final confirmPin = confirmPinController.text.trim();
 
-    if (newPinController.text != confirmPinController.text) {
-      _showSnackBar("PIN confirmation does not match");
-      return;
-    }
 
-    ShopUser.pin = newPinController.text;
-    ShopUser.mustChangePin = false;
+  // Current PIN validation
+  if (currentPin.length != 6) {
+    _showSnackBar("Current PIN must be 6 digits");
+    return;
+  }
 
+
+  // New PIN validation
+  if (newPin.length != 6) {
+    _showSnackBar("New PIN must be 6 digits");
+    return;
+  }
+
+
+  // Confirm PIN validation
+  if (confirmPin.length != 6) {
+    _showSnackBar("Confirm PIN must be 6 digits");
+    return;
+  }
+
+
+  // Check new PIN == confirm PIN
+  if (newPin != confirmPin) {
+    _showSnackBar(
+      "New PIN and Confirm PIN do not match",
+    );
+    return;
+  }
+
+
+  try {
+
+    final message = await ref
+        .read(authProvider.notifier)
+        .changePasswordWallet(
+          currentPassword: currentPin.trim(),
+          newPassword: newPin.trim(),
+          
+        );
+
+
+    if (!mounted) return;
+
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+
+
+    // Move to password step
     setState(() {
       _currentStep = 2;
     });
+
+
+  } catch(e){
+
+    _showSnackBar(
+      e.toString().replaceFirst(
+        "Exception: ",
+        "",
+      ),
+    );
+
+  }
+}
+
+  Future<void> _processPasswordChange() async {
+  if (newPasswordController.text.length < 8) {
+    _showSnackBar("Password must be at least 8 characters.");
+    return;
   }
 
-  void _processPasswordChange() {
-    if (currentPasswordController.text != ShopUser.password) {
-      _showSnackBar("Current password is incorrect");
-      return;
-    }
+  if (newPasswordController.text !=
+      confirmPasswordController.text) {
+    _showSnackBar("Password confirmation does not match");
+    return;
+  }
 
-    if (newPasswordController.text.length < 6) {
-      _showSnackBar("Password must be at least 6 characters long");
-      return;
-    }
+  try {
+    final message = await ref
+        .read(authProvider.notifier)
+        .changePassword(
+          currentPassword: currentPasswordController.text.trim(),
+          newPassword: newPasswordController.text.trim(),
+          confirmPassword:
+              confirmPasswordController.text.trim(),
+        );
 
-    if (newPasswordController.text != confirmPasswordController.text) {
-      _showSnackBar("Password confirmation does not match");
-      return;
-    }
+    if (!mounted) return;
 
-    ShopUser.password = newPasswordController.text;
-    ShopUser.mustChangePassword = false;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const HomePage()),
+      MaterialPageRoute(
+        builder: (_) => const HomePage(),
+      ),
     );
+  } catch (e) {
+    _showSnackBar(e.toString().replaceFirst("Exception: ", ""));
   }
+}
 
   @override
   Widget build(BuildContext context) {

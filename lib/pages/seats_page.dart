@@ -21,8 +21,6 @@ class SeatsPage extends StatefulWidget {
 class _SeatsPageState extends State<SeatsPage> {
   List<SeatModel> get seats => SeatData.seats;
 
-  bool _isShopOpen = true; // SHOP STATUS STATE
-
   void _handleLogout() {
     showDialog(
       context: context,
@@ -183,7 +181,7 @@ class _SeatsPageState extends State<SeatsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Add New Table',
+                                    'စားပွဲအသစ် ထည့်မည်',
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.w800,
@@ -192,7 +190,7 @@ class _SeatsPageState extends State<SeatsPage> {
                                   ),
                                   SizedBox(height: 3),
                                   Text(
-                                    'Each table contains 4 seats',
+                                    'စားပွဲတစ်လုံးတွင် ထိုင်ခုံ ၄ လုံး ပါရှိသည်',
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: Color(0xff7B8A92),
@@ -213,7 +211,7 @@ class _SeatsPageState extends State<SeatsPage> {
                         const SizedBox(height: 26),
 
                         const Text(
-                          'Table name',
+                          'စားပွဲအမည်',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -228,7 +226,7 @@ class _SeatsPageState extends State<SeatsPage> {
                           autofocus: true,
                           textCapitalization: TextCapitalization.characters,
                           decoration: InputDecoration(
-                            hintText: 'Example: T1',
+                            hintText: 'ဥပမာ - T1',
                             prefixIcon: const Icon(
                               Icons.event_seat_outlined,
                               color: Color(0xff0F7B94),
@@ -274,7 +272,7 @@ class _SeatsPageState extends State<SeatsPage> {
                             final seatName = value?.trim() ?? '';
 
                             if (seatName.isEmpty) {
-                              return 'Please enter a table name';
+                              return 'စားပွဲအမည် ထည့်ပါ';
                             }
 
                             final alreadyExists = seats.any(
@@ -284,7 +282,7 @@ class _SeatsPageState extends State<SeatsPage> {
                             );
 
                             if (alreadyExists) {
-                              return 'A table with this name already exists';
+                              return 'ဤအမည်ဖြင့် စားပွဲရှိပြီးသားဖြစ်သည်';
                             }
 
                             return null;
@@ -294,7 +292,7 @@ class _SeatsPageState extends State<SeatsPage> {
                         const SizedBox(height: 24),
 
                         const Text(
-                          'Initial status',
+                          'ကနဦးအခြေအနေ',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -311,7 +309,7 @@ class _SeatsPageState extends State<SeatsPage> {
                             _addSeatStatusOption(
                               status: SeatStatus.available,
                               selectedStatus: selectedStatus,
-                              label: 'Available',
+                              label: 'အားလပ်',
                               icon: Icons.check_circle_outline_rounded,
                               color: const Color(0xff26B85A),
                               onTap: () {
@@ -323,7 +321,7 @@ class _SeatsPageState extends State<SeatsPage> {
                             _addSeatStatusOption(
                               status: SeatStatus.occupied,
                               selectedStatus: selectedStatus,
-                              label: 'Occupied',
+                              label: 'အသုံးပြုနေ',
                               icon: Icons.people_outline_rounded,
                               color: Colors.redAccent,
                               onTap: () {
@@ -335,7 +333,7 @@ class _SeatsPageState extends State<SeatsPage> {
                             _addSeatStatusOption(
                               status: SeatStatus.reserved,
                               selectedStatus: selectedStatus,
-                              label: 'Reserved',
+                              label: 'ကြိုတင်မှာထား',
                               icon: Icons.schedule_rounded,
                               color: Colors.amber.shade700,
                               onTap: () {
@@ -347,7 +345,7 @@ class _SeatsPageState extends State<SeatsPage> {
                             _addSeatStatusOption(
                               status: SeatStatus.disabled,
                               selectedStatus: selectedStatus,
-                              label: 'Disabled',
+                              label: 'အသုံးမပြုနိုင်',
                               icon: Icons.block_rounded,
                               color: Colors.grey,
                               onTap: () {
@@ -378,8 +376,8 @@ class _SeatsPageState extends State<SeatsPage> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  'This table will add 4 seats. You currently have '
-                                  '${seats.length} tables and ${seats.length * seatsPerTable} seats.',
+                                  'ဤစားပွဲတွင် ထိုင်ခုံ ၄ လုံး ထည့်သွင်းမည်။ လက်ရှိတွင် '
+                                  'စားပွဲ ${seats.length} လုံးနှင့် ထိုင်ခုံ ${seats.length * seatsPerTable} လုံး ရှိသည်။',
                                   style: const TextStyle(
                                     fontSize: 13,
                                     color: Color(0xff60727B),
@@ -453,7 +451,7 @@ class _SeatsPageState extends State<SeatsPage> {
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
-                                            '${newTable.id} added with 4 seats',
+                                            '${newTable.id} ကို ထိုင်ခုံ ၄ လုံးနှင့်အတူ ထည့်ပြီးပါပြီ',
                                           ),
                                         ),
                                       ],
@@ -463,7 +461,7 @@ class _SeatsPageState extends State<SeatsPage> {
                             },
                             icon: const Icon(Icons.add_rounded),
                             label: const Text(
-                              'Add Table',
+                              'စားပွဲထည့်မည်',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
@@ -601,16 +599,18 @@ class _SeatsPageState extends State<SeatsPage> {
             borderRadius: BorderRadius.circular(22),
           ),
           title: const Text(
-            'Reset Tables',
+            'စားပွဲအားလုံး ပြန်သတ်မှတ်မည်',
             style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800),
           ),
-          content: const Text('Set every table status back to Available?'),
+          content: const Text(
+            'စားပွဲအားလုံး၏ အခြေအနေကို အားလပ်အဖြစ် ပြန်သတ်မှတ်မည်လား။',
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(dialogContext);
               },
-              child: const Text('Cancel'),
+              child: const Text('မလုပ်တော့ပါ'),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -629,7 +629,7 @@ class _SeatsPageState extends State<SeatsPage> {
 
                 _updateSeatBadge();
               },
-              child: const Text('Reset Tables'),
+              child: const Text('ပြန်သတ်မှတ်မည်'),
             ),
           ],
         );
@@ -645,15 +645,15 @@ class _SeatsPageState extends State<SeatsPage> {
       builder: (_) => AlertDialog(
         backgroundColor: Colors.white,
         title: const Text(
-          "Rename Table",
+          "စားပွဲအမည်ပြောင်းမည်",
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
         ),
 
         content: TextFormField(
           controller: controller,
           decoration: InputDecoration(
-            labelText: "Table Name",
-            hintText: "Enter table name",
+            labelText: "စားပွဲအမည်",
+            hintText: "စားပွဲအမည် ထည့်ပါ",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -670,7 +670,7 @@ class _SeatsPageState extends State<SeatsPage> {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('Cancel'),
+            child: const Text('မလုပ်တော့ပါ'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -684,7 +684,7 @@ class _SeatsPageState extends State<SeatsPage> {
 
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: const Text('သိမ်းမည်'),
           ),
         ],
       ),
@@ -697,18 +697,18 @@ class _SeatsPageState extends State<SeatsPage> {
       builder: (_) => AlertDialog(
         backgroundColor: Colors.white,
         title: const Text(
-          "Delete Table",
+          "စားပွဲဖျက်မည်",
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'Delete ${seat.id}? This will remove all 4 seats from this table.',
+          '${seat.id} ကို ဖျက်မည်လား။ ဤစားပွဲရှိ ထိုင်ခုံ ၄ လုံးလုံးကိုလည်း ဖယ်ရှားမည်။',
         ),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('Cancel'),
+            child: const Text('မလုပ်တော့ပါ'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -726,11 +726,13 @@ class _SeatsPageState extends State<SeatsPage> {
               ScaffoldMessenger.of(this.context).showSnackBar(
                 SnackBar(
                   behavior: SnackBarBehavior.floating,
-                  content: Text('${seat.id} and its 4 seats were deleted'),
+                  content: Text(
+                    '${seat.id} နှင့် ထိုင်ခုံ ၄ လုံးကို ဖျက်ပြီးပါပြီ',
+                  ),
                 ),
               );
             },
-            child: const Text('Delete'),
+            child: const Text('ဖျက်မည်'),
           ),
         ],
       ),
@@ -748,23 +750,20 @@ class _SeatsPageState extends State<SeatsPage> {
 
           PageHeader(
             title: "Moe's Burmese Kitchen",
-            subtitle: "Manage tables",
+            subtitle: "စားပွဲစီမံခြင်း",
             icon: Icons.table_restaurant_rounded,
-            isShopOpen: _isShopOpen,
             onStatusChanged: (isOpen) {
-              setState(() {
-                _isShopOpen = isOpen;
-              });
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    _isShopOpen ? "Shop is now OPEN" : "Shop is now CLOSED",
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isOpen ? 'ဆိုင်ဖွင့်ထားပါပြီ' : 'ဆိုင်ပိတ်ထားပါပြီ',
+                    ),
+                    duration: const Duration(seconds: 2),
+                    backgroundColor: isOpen ? Colors.green : Colors.red,
                   ),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: _isShopOpen ? Colors.green : Colors.red,
-                ),
-              );
+                );
             },
 
             notificationCount: 6,
@@ -793,7 +792,7 @@ class _SeatsPageState extends State<SeatsPage> {
             children: [
               Expanded(
                 child: SeatKpiCard(
-                  title: 'Available Tables',
+                  title: 'အားလပ်သော စားပွဲများ',
                   value: availableTableCount.toString(),
                   icon: Icons.check_circle_rounded,
                   color: const Color(0xff25B95B),
@@ -802,7 +801,7 @@ class _SeatsPageState extends State<SeatsPage> {
               const SizedBox(width: 12),
               Expanded(
                 child: SeatKpiCard(
-                  title: 'Occupied Tables',
+                  title: 'အသုံးပြုနေသော စားပွဲများ',
                   value: occupiedTableCount.toString(),
                   icon: Icons.table_bar_rounded,
                   color: const Color(0xffF05D68),
@@ -815,7 +814,7 @@ class _SeatsPageState extends State<SeatsPage> {
             children: [
               Expanded(
                 child: SeatKpiCard(
-                  title: 'Reserved Tables',
+                  title: 'ကြိုတင်မှာထားသော စားပွဲများ',
                   value: reservedTableCount.toString(),
                   icon: Icons.schedule_rounded,
                   color: const Color(0xffEFB62F),
@@ -824,7 +823,7 @@ class _SeatsPageState extends State<SeatsPage> {
               const SizedBox(width: 12),
               Expanded(
                 child: SeatKpiCard(
-                  title: 'Disabled Tables',
+                  title: 'အသုံးမပြုနိုင်သော စားပွဲများ',
                   value: disabledTableCount.toString(),
                   icon: Icons.block_rounded,
                   color: const Color(0xff899399),
@@ -855,7 +854,7 @@ class _SeatsPageState extends State<SeatsPage> {
                         Icon(Icons.refresh, color: Colors.green),
                         SizedBox(width: 8),
                         Text(
-                          "Reset",
+                          "ပြန်သတ်မှတ်မည်",
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -894,7 +893,7 @@ class _SeatsPageState extends State<SeatsPage> {
                         ),
                         SizedBox(width: 8),
                         Text(
-                          "Add Table",
+                          "စားပွဲထည့်မည်",
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -920,7 +919,7 @@ class _SeatsPageState extends State<SeatsPage> {
           ),
 
           /// BOTTOM SPACE
-          const SizedBox(height: 60),
+          const SizedBox(height: 70),
         ],
       ),
     );

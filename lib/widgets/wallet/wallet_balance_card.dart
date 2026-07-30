@@ -91,12 +91,11 @@ class WalletBalanceCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'SHOP WALLET',
+                        'ဆိုင်ပိုက်ဆံအိတ်',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.82),
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 1,
                         ),
                       ),
                     ],
@@ -105,7 +104,7 @@ class WalletBalanceCard extends StatelessWidget {
                   const Spacer(),
 
                   Text(
-                    'Available Balance',
+                    'လက်ကျန်ပွိုင့်',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.78),
                       fontSize: 14,
@@ -137,7 +136,7 @@ class WalletBalanceCard extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: Text(
-                          'points',
+                          'ပွိုင့်',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.86),
                             fontSize: 15,
@@ -167,7 +166,7 @@ class WalletBalanceCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Send and receive points securely',
+                        'ပွိုင့်များကို လုံခြုံစွာ ပို့နိုင်၊ လက်ခံနိုင်သည်',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.80),
                           fontSize: 12,

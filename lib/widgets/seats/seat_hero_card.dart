@@ -55,7 +55,7 @@ class SeatHeroCard extends StatelessWidget {
               const SizedBox(width: 14),
               const Expanded(
                 child: Text(
-                  'Table Management',
+                  'စားပွဲစီမံခန့်ခွဲမှု',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -65,15 +65,27 @@ class SeatHeroCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 26),
+          const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text(
+                  'စားပွဲ $totalTables လုံးအနက်',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.90),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               Text(
                 '$availableTables',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 38,
+                  fontSize: 33,
                   height: 1,
                   fontWeight: FontWeight.w900,
                 ),
@@ -82,7 +94,7 @@ class SeatHeroCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 3),
                 child: Text(
-                  'of $totalTables tables available',
+                  'လုံး အားလပ်',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.90),
                     fontSize: 15,
@@ -94,7 +106,7 @@ class SeatHeroCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Monitor reservations and table availability',
+            'ကြိုတင်မှာယူမှုနှင့် စားပွဲအားလပ်မှုကို စောင့်ကြည့်ပါ',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.82),
               fontSize: 14,
@@ -113,7 +125,7 @@ class SeatHeroCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            '$occupiedPercent% table occupancy',
+            'စားပွဲအသုံးပြုမှု $occupiedPercent%',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.92),
               fontSize: 13,

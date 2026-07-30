@@ -23,7 +23,6 @@ class OverviewPage extends StatefulWidget {
 
 class _OverviewPageState extends State<OverviewPage> {
   SalesFilter _selectedFilter = SalesFilter.today;
-  bool _isShopOpen = true; // SHOP STATUS STATE
 
   void _handleLogout() {
     showDialog(
@@ -102,21 +101,18 @@ class _OverviewPageState extends State<OverviewPage> {
             title: "Moe's Burmese Kitchen",
             subtitle: "ဆိုင်ပိုင်ရှင် ဒက်ရှ်ဘုတ်",
             icon: Icons.storefront,
-            isShopOpen: _isShopOpen,
             onStatusChanged: (isOpen) {
-              setState(() {
-                _isShopOpen = isOpen;
-              });
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    _isShopOpen ? "Shop is now OPEN" : "Shop is now CLOSED",
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isOpen ? 'ဆိုင်ဖွင့်ထားပါပြီ' : 'ဆိုင်ပိတ်ထားပါပြီ',
+                    ),
+                    duration: const Duration(seconds: 2),
+                    backgroundColor: isOpen ? Colors.green : Colors.red,
                   ),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: _isShopOpen ? Colors.green : Colors.red,
-                ),
-              );
+                );
             },
 
             notificationCount: 6,
@@ -193,7 +189,7 @@ class _OverviewPageState extends State<OverviewPage> {
           QuickActionGrid(onTabChange: widget.onTabChange),
 
           /// BOTTOM SPACE
-          const SizedBox(height: 60),
+          const SizedBox(height: 70),
         ],
       ),
     );

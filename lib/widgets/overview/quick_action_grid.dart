@@ -45,8 +45,8 @@ class QuickActionGrid extends StatelessWidget {
               ),
 
               _ActionCard(
-                title: 'ထိုင်ခုံ',
-                subtitle: 'ထိုင်ခုံစီမံခြင်း',
+                title: 'စားပွဲ',
+                subtitle: 'စားပွဲစီမံခြင်း',
                 icon: Icons.event_seat_outlined,
                 color: Colors.blue,
                 onTap: () => onTabChange(3),

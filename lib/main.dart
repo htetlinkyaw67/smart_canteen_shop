@@ -1,10 +1,16 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_canteen_shop/firebase_options.dart';
 import 'package:smart_canteen_shop/pages/home_page.dart';
 import 'package:smart_canteen_shop/pages/change_credentials_page.dart';
-import 'package:smart_canteen_shop/models/shop_user.dart';
-import 'package:smart_canteen_shop/services/api_service.dart';
+import 'package:smart_canteen_shop/provider/auth_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MyApp());
 }
 
@@ -27,22 +33,34 @@ class MyApp extends StatelessWidget {
       initialRoute: '/login',
 
       routes: {
-        '/login': (context) => const LoginPage(),
+        '/login': (context) => ProviderScope(child: const LoginPage()),
         '/home': (context) => const HomePage(),
       },
     );
   }
 }
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   bool _isPasswordVisible = false;
+  final emailController = TextEditingController();
+
+  final passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+
+    passwordController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 16.0),
               // Shop Owner Text
               const Text(
-                'Shop Owner',
+                'ဆိုင်ပိုင်ရှင်',
                 style: TextStyle(
                   fontSize: 28.0,
                   fontWeight: FontWeight.bold,
@@ -79,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 8.0),
               // Manage your canteen shop Text
               Text(
-                'Manage your canteen shop',
+                'သင့်ကန်တင်းဆိုင်ကို စီမံခန့်ခွဲပါ',
                 style: TextStyle(fontSize: 16.0, color: Colors.grey[600]),
               ),
               const SizedBox(height: 48.0),
@@ -95,7 +113,7 @@ class _LoginPageState extends State<LoginPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       const Text(
-                        'Shop username',
+                        'ဆိုင်အမည်',
                         style: TextStyle(
                           fontSize: 14.0,
                           fontWeight: FontWeight.w500,
@@ -104,8 +122,9 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 8.0),
                       TextFormField(
+                        controller: emailController,
                         decoration: InputDecoration(
-                          hintText: 'Enter shop username',
+                          hintText: 'ဆိုင်အမည် ထည့်ပါ',
                           hintStyle: TextStyle(
                             color: Colors.grey.shade500,
                             fontSize: 14,
@@ -128,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 24.0),
                       const Text(
-                        'Password',
+                        'စကားဝှက်',
                         style: TextStyle(
                           fontSize: 14.0,
                           fontWeight: FontWeight.w500,
@@ -137,6 +156,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 8.0),
                       TextFormField(
+                        controller: passwordController,
                         obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
                           hintText: '********',
@@ -173,23 +193,50 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            // Directly check state and navigate without waiting for a server
-                            if (ShopUser.mustChangePin) {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const ChangeCredentialsPage(),
-                                ),
-                              );
-                            } else {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const HomePage(),
-                                ),
-                              );
-                            }
+                          onPressed: () async {
+                            await ref
+                                .read(authProvider.notifier)
+                                .login(
+                                  emailController.text.trim(),
+                                  passwordController.text.trim(),
+                                );
+
+                            final state = ref.read(authProvider);
+
+                            state.when(
+                              data: (data) {
+                                if (data == null) return;
+
+                                if (data.user.mustChangePin) {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ProviderScope(
+                                        child: const ChangeCredentialsPage(),
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const HomePage(),
+                                    ),
+                                  );
+                                }
+                              },
+
+                              loading: () {},
+
+                              error: (error, stack) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(error.toString()),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              },
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.teal[600],
@@ -203,7 +250,7 @@ class _LoginPageState extends State<LoginPage> {
                             color: Colors.white,
                           ),
                           label: const Text(
-                            'Sign in',
+                            'အကောင့်ဝင်မည်',
                             style: TextStyle(
                               fontSize: 18.0,
                               fontWeight: FontWeight.bold,

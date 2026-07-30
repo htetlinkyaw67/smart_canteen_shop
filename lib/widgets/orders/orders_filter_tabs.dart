@@ -32,13 +32,13 @@ class OrdersFilterTabs extends StatelessWidget {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _tab(0, "Pending", pendingCount, Colors.orange),
+          _tab(0, "စောင့်ဆိုင်း", pendingCount, Colors.orange),
 
-          _tab(1, "Preparing", preparingCount, const Color(0xffB39DDB)),
+          _tab(1, "ပြင်ဆင်နေ", preparingCount, const Color(0xffB39DDB)),
 
-          _tab(2, "Ready", readyCount, const Color(0xff54C7C3)),
+          _tab(2, "အဆင်သင့်", readyCount, const Color(0xff54C7C3)),
 
-          _tab(3, "Completed", completedCount, const Color(0xff4CD778)),
+          _tab(3, "ပြီးဆုံး", completedCount, const Color(0xff4CD778)),
         ],
       ),
     );

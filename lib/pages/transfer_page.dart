@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class TransferPage extends StatefulWidget {
   final int currentBalance;
@@ -13,6 +14,7 @@ class _TransferPageState extends State<TransferPage> {
   final TextEditingController _recipientController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
+  final TextEditingController _pinController = TextEditingController();
 
   bool _isLoading = false;
   final List<int> _suggestedAmounts = [50, 100, 250, 500, 1000];
@@ -34,6 +36,7 @@ class _TransferPageState extends State<TransferPage> {
     _recipientController.dispose();
     _amountController.dispose();
     _noteController.dispose();
+    _pinController.dispose();
     super.dispose();
   }
 
@@ -43,33 +46,270 @@ class _TransferPageState extends State<TransferPage> {
     final String note = _noteController.text.trim();
 
     if (recipient.isEmpty) {
-      _showError('Please enter a recipient wallet ID or phone number.');
+      _showError('လက်ခံမည့် Wallet ID သို့မဟုတ် ဖုန်းနံပါတ် ထည့်ပါ။');
       return;
     }
 
     if (amountText.isEmpty) {
-      _showError('Please enter the point amount to transfer.');
+      _showError('လွှဲပြောင်းမည့် ပွိုင့်ပမာဏ ထည့်ပါ။');
       return;
     }
 
     final int? amount = int.tryParse(amountText);
     if (amount == null || amount <= 0) {
-      _showError('Please enter a valid point amount.');
+      _showError('မှန်ကန်သော ပွိုင့်ပမာဏ ထည့်ပါ။');
       return;
     }
 
     if (amount > widget.currentBalance) {
-      _showError('Insufficient balance for this transfer.');
+      _showError('လွှဲပြောင်းမည့် ပွိုင့်ပမာဏ အလက်မရနိင်ပါ။');
       return;
     }
 
-    setState(() => _isLoading = true);
+    _showPinVerificationSheet(recipient, amount, note);
+  }
 
-    Future.delayed(const Duration(seconds: 1), () {
+  Future<void> _showPinVerificationSheet(
+    String recipient,
+    int amount,
+    String note,
+  ) async {
+    _pinController.clear();
+    final FocusNode pinFocusNode = FocusNode();
+
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.58),
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final int enteredDigits = _pinController.text.length;
+            final bool isComplete = enteredDigits == 6;
+
+            return Dialog(
+              alignment: Alignment.center,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 22),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: Container(
+                width: double.infinity,
+                constraints: const BoxConstraints(maxWidth: 370),
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(26),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      blurRadius: 28,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 8),
+                        Container(
+                          width: 58,
+                          height: 58,
+                          decoration: BoxDecoration(
+                            color: primary.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: const Icon(
+                            Icons.lock_rounded,
+                            color: primary,
+                            size: 27,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        const Text(
+                          'PIN ဖြင့် အတည်ပြုပါ',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xff0F172A),
+                            fontSize: 19,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'လွှဲပြောင်းမှုကို ဆက်လုပ်ရန် PIN နံပါတ် ၆ လုံး ထည့်ပါ။',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xff64748B),
+                            fontSize: 12.5,
+                            height: 1.45,
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        SizedBox(
+                          width: 1,
+                          height: 1,
+                          child: TextField(
+                            controller: _pinController,
+                            focusNode: pinFocusNode,
+                            autofocus: true,
+                            maxLength: 6,
+                            keyboardType: TextInputType.number,
+                            textInputAction: TextInputAction.done,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(6),
+                            ],
+                            decoration: const InputDecoration(
+                              counterText: '',
+                              border: InputBorder.none,
+                            ),
+                            onChanged: (_) => setDialogState(() {}),
+                            onSubmitted: (_) {
+                              if (isComplete) {
+                                Navigator.pop(dialogContext, true);
+                              }
+                            },
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => pinFocusNode.requestFocus(),
+                          behavior: HitTestBehavior.opaque,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(6, (index) {
+                              final bool filled = index < enteredDigits;
+                              final bool active =
+                                  index == enteredDigits && enteredDigits < 6;
+
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 160),
+                                width: 42,
+                                height: 50,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: filled
+                                      ? primary.withValues(alpha: 0.08)
+                                      : const Color(0xffF8FAFC),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: filled || active
+                                        ? primary
+                                        : const Color(0xffCBD5E1),
+                                    width: active ? 2 : 1.2,
+                                  ),
+                                  boxShadow: active
+                                      ? [
+                                          BoxShadow(
+                                            color: primary.withValues(
+                                              alpha: 0.12,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: filled
+                                    ? const Text(
+                                        '•',
+                                        style: TextStyle(
+                                          color: primary,
+                                          fontSize: 25,
+                                          height: 1,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      )
+                                    : null,
+                              );
+                            }),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          '$enteredDigits / 6',
+                          style: TextStyle(
+                            color: isComplete
+                                ? primary
+                                : const Color(0xff94A3B8),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: isComplete
+                                ? () => Navigator.pop(dialogContext, true)
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              elevation: 0,
+                              backgroundColor: primary,
+                              disabledBackgroundColor: const Color(0xffE2E8F0),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                            child: const Text(
+                              'အတည်ပြု၍ လွှဲမည်',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Material(
+                        color: const Color(0xffF1F5F9),
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: () => Navigator.pop(dialogContext, false),
+                          child: const SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 19,
+                              color: Color(0xff64748B),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    pinFocusNode.dispose();
+
+    if (confirmed == true && mounted) {
+      setState(() => _isLoading = true);
+
+      // Replace this delay with your Laravel API PIN verification request.
+      await Future.delayed(const Duration(milliseconds: 850));
+
       if (!mounted) return;
       setState(() => _isLoading = false);
       _showFintechReceiptModal(recipient, amount, note);
-    });
+    }
   }
 
   void _showError(String message) {
@@ -168,7 +408,7 @@ class _TransferPageState extends State<TransferPage> {
                                 ),
                                 const SizedBox(width: 6),
                                 const Text(
-                                  'Success',
+                                  'အောင်မြင်ပါသည်',
                                   style: TextStyle(
                                     color: success,
                                     fontSize: 12,
@@ -184,7 +424,7 @@ class _TransferPageState extends State<TransferPage> {
 
                       // Minimal Title
                       const Text(
-                        'Transfer Completed Successfully',
+                        'လွှဲပြောင်းမှု အောင်မြင်ပါသည်',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Color(0xff0F172A),
@@ -196,7 +436,7 @@ class _TransferPageState extends State<TransferPage> {
 
                       // Large Typography for Amount
                       Text(
-                        '-$amount pts',
+                        '-$amount ပွိုင့်',
                         style: const TextStyle(
                           color: primary,
                           fontSize: 38,
@@ -211,18 +451,18 @@ class _TransferPageState extends State<TransferPage> {
                       const SizedBox(height: 20),
 
                       // Key-Value Rows with Small, Muted Labels
-                      _fintechRow('Recipient', recipient),
+                      _fintechRow('လက်ခံသူ', recipient),
                       const SizedBox(height: 14),
-                      _fintechRow('Status', '● Completed', valueColor: success),
+                      _fintechRow('အခြေအနေ', 'ပြီးစီးပြီး'),
                       const SizedBox(height: 14),
-                      _fintechRow('Date', dateStr),
+                      _fintechRow('ရက်စွဲ', dateStr),
                       const SizedBox(height: 14),
-                      _fintechRow('Time', timeStr),
+                      _fintechRow('အချိန်', timeStr),
                       const SizedBox(height: 14),
-                      _fintechRow('Transaction', txnId),
+                      _fintechRow('ငွေလွှဲအမှတ်', txnId),
                       if (note.isNotEmpty) ...[
                         const SizedBox(height: 14),
-                        _fintechRow('Note', note),
+                        _fintechRow('မှတ်ချက်', note),
                       ],
                     ],
                   ),
@@ -252,7 +492,7 @@ class _TransferPageState extends State<TransferPage> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: const Text(
-                                  'Saved to gallery successfully!',
+                                  'Gallery ထဲသို့ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။',
                                 ),
                                 backgroundColor: primary,
                                 behavior: SnackBarBehavior.floating,
@@ -268,7 +508,7 @@ class _TransferPageState extends State<TransferPage> {
                               Icon(Icons.download_rounded, size: 16),
                               SizedBox(width: 6),
                               Text(
-                                'Save',
+                                'သိမ်းဆည်းရန်',
                                 style: TextStyle(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.w700,
@@ -297,7 +537,7 @@ class _TransferPageState extends State<TransferPage> {
                             Navigator.of(context).pop(true);
                           },
                           child: const Text(
-                            'Done',
+                            'ပြီးပါပြီ',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -403,7 +643,7 @@ class _TransferPageState extends State<TransferPage> {
           ),
         ),
         title: const Text(
-          'Transfer Points',
+          'ပွိုင့်လွှဲပြောင်းရန်',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
         ),
       ),
@@ -419,17 +659,17 @@ class _TransferPageState extends State<TransferPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'AVAILABLE BALANCE',
+                        'လက်ကျန်ပွိုင့်',
                         style: TextStyle(
                           color: Color(0xff99F6E4),
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.8,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${widget.currentBalance} pts',
+                        '${widget.currentBalance} ပွိုင့်',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 26,
@@ -467,7 +707,7 @@ class _TransferPageState extends State<TransferPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Send Details',
+                        'လွှဲပြောင်းမှုအချက်အလက်',
                         style: TextStyle(
                           color: Color(0xff0F172A),
                           fontSize: 16,
@@ -486,12 +726,11 @@ class _TransferPageState extends State<TransferPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'RECIPIENT',
+                              'လက်ခံမည့်သူ',
                               style: TextStyle(
                                 color: Color(0xff64748B),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
-                                letterSpacing: 0.8,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -503,7 +742,8 @@ class _TransferPageState extends State<TransferPage> {
                                 fontSize: 14,
                               ),
                               decoration: const InputDecoration(
-                                hintText: 'Username, ID or phone number',
+                                hintText:
+                                    'အသုံးပြုသူအမည်၊ ID သို့မဟုတ် ဖုန်းနံပါတ်',
                                 hintStyle: TextStyle(
                                   color: Color(0xff94A3B8),
                                   fontSize: 13.5,
@@ -529,12 +769,11 @@ class _TransferPageState extends State<TransferPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'TRANSFER AMOUNT',
+                              'လွှဲပြောင်းမည့် ပွိုင့်ပမာဏ',
                               style: TextStyle(
                                 color: Color(0xff64748B),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
-                                letterSpacing: 0.8,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -548,7 +787,7 @@ class _TransferPageState extends State<TransferPage> {
                               ),
                               decoration: const InputDecoration(
                                 hintText: '0',
-                                suffixText: 'pts',
+                                suffixText: 'ပွိုင့်',
                                 suffixStyle: TextStyle(
                                   color: primary,
                                   fontWeight: FontWeight.w900,
@@ -592,7 +831,7 @@ class _TransferPageState extends State<TransferPage> {
                                           ),
                                         ),
                                         child: Text(
-                                          '+$val pts',
+                                          '+$val ပွိုင့်',
                                           style: TextStyle(
                                             color: isSelected
                                                 ? Colors.white
@@ -622,12 +861,11 @@ class _TransferPageState extends State<TransferPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'REMARK NOTE (OPTIONAL)',
+                              'မှတ်ချက် (မဖြည့်လည်းရသည်)',
                               style: TextStyle(
                                 color: Color(0xff64748B),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
-                                letterSpacing: 0.8,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -640,7 +878,7 @@ class _TransferPageState extends State<TransferPage> {
                                 fontSize: 14,
                               ),
                               decoration: const InputDecoration(
-                                hintText: 'Add a friendly note...',
+                                hintText: 'မှတ်ချက်ရေးထည့်ပါ...',
                                 hintStyle: TextStyle(
                                   color: Color(0xff94A3B8),
                                   fontSize: 13.5,
@@ -678,7 +916,7 @@ class _TransferPageState extends State<TransferPage> {
                                   ),
                                 )
                               : const Text(
-                                  'Confirm Transfer',
+                                  'လွှဲပြောင်းမှု အတည်ပြုရန်',
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w900,

@@ -21,30 +21,28 @@ class WalletPage extends StatefulWidget {
 }
 
 class WalletPageState extends State<WalletPage> {
-  bool _isShopOpen = true;
-
   int walletBalance = 1600;
 
   final List<WalletTransaction> transactions = [
     WalletTransaction(
       id: 'TXN-001',
-      title: 'Points received',
+      title: 'ပွိုင့် လက်ခံရရှိသည်',
       subtitle: 'Order #1048',
       points: 500,
       type: WalletTransactionType.received,
-      createdAt: DateTime(2026, 7, 26, 18, 30),
+      createdAt: DateTime(2026, 7, 28, 18, 30),
     ),
     WalletTransaction(
       id: 'TXN-002',
-      title: 'Points transferred',
-      subtitle: 'Student wallet',
+      title: 'ပွိုင့် လွှဲပြောင်းသည်',
+      subtitle: 'ကျောင်းသား ပိုက်ဆံအိတ်',
       points: 200,
       type: WalletTransactionType.sent,
       createdAt: DateTime(2026, 7, 26, 15, 20),
     ),
     WalletTransaction(
       id: 'TXN-003',
-      title: 'Payment received',
+      title: 'ငွေပေးချေမှု လက်ခံရရှိသည်',
       subtitle: 'Order #1047',
       points: 350,
       type: WalletTransactionType.received,
@@ -52,15 +50,15 @@ class WalletPageState extends State<WalletPage> {
     ),
     WalletTransaction(
       id: 'TXN-004',
-      title: 'Points transferred',
-      subtitle: 'Student wallet',
+      title: 'ပွိုင့် လွှဲပြောင်းသည်',
+      subtitle: 'ကျောင်းသား ပိုက်ဆံအိတ်',
       points: 100,
       type: WalletTransactionType.sent,
       createdAt: DateTime(2026, 7, 24, 17, 45),
     ),
     WalletTransaction(
       id: 'TXN-005',
-      title: 'Points received',
+      title: 'ပွိုင့် လက်ခံရရှိသည်',
       subtitle: 'Order #1046',
       points: 250,
       type: WalletTransactionType.received,
@@ -68,15 +66,15 @@ class WalletPageState extends State<WalletPage> {
     ),
     WalletTransaction(
       id: 'TXN-006',
-      title: 'Points transferred',
-      subtitle: 'Student wallet',
+      title: 'ပွိုင့် လွှဲပြောင်းသည်',
+      subtitle: 'ကျောင်းသား ပိုက်ဆံအိတ်',
       points: 50,
       type: WalletTransactionType.sent,
       createdAt: DateTime(2026, 7, 23, 9, 30),
     ),
     WalletTransaction(
       id: 'TXN-007',
-      title: 'Payment received',
+      title: 'ငွေပေးချေမှု လက်ခံရရှိသည်',
       subtitle: 'Order #1045',
       points: 400,
       type: WalletTransactionType.received,
@@ -178,7 +176,7 @@ class WalletPageState extends State<WalletPage> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Wallet QR Scanned',
+                  'ပိုက်ဆံအိတ် QR ကို စကင်ဖတ်ပြီးပါပြီ',
                   style: TextStyle(
                     color: Color(0xff172B35),
                     fontSize: 21,
@@ -187,8 +185,8 @@ class WalletPageState extends State<WalletPage> {
                 ),
                 const SizedBox(height: 7),
                 const Text(
-                  'The wallet was found. Continue to enter '
-                  'the points you want to transfer.',
+                  'ပိုက်ဆံအိတ်ကို တွေ့ရှိပါပြီ။ လွှဲပြောင်းလိုသော '
+                  'ပွိုင့်ပမာဏကို ဆက်လက်ထည့်သွင်းပါ။',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Color(0xff7E8D94),
@@ -217,7 +215,7 @@ class WalletPageState extends State<WalletPage> {
                     },
                     icon: const Icon(Icons.arrow_forward_rounded),
                     label: const Text(
-                      'Continue',
+                      'ဆက်လုပ်မည်',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -258,8 +256,8 @@ class WalletPageState extends State<WalletPage> {
         : Icons.north_east_rounded;
 
     final String amountText = isReceived
-        ? '+${_formatPoints(transaction.points)} pts'
-        : '-${_formatPoints(transaction.points)} pts';
+        ? '+${_formatPoints(transaction.points)} ပွိုင့်'
+        : '-${_formatPoints(transaction.points)} ပွိုင့်';
 
     // Fintech Voucher Theme Colors
     const Color voucherSheetBg = Color(0xffF1F5F9);
@@ -338,7 +336,7 @@ class WalletPageState extends State<WalletPage> {
                                 ),
                                 const SizedBox(width: 6),
                                 const Text(
-                                  'Success',
+                                  'အောင်မြင်သည်',
                                   style: TextStyle(
                                     color: success,
                                     fontSize: 12,
@@ -383,28 +381,31 @@ class WalletPageState extends State<WalletPage> {
                       // Key-Value Rows with Small, Muted Labels
                       if (transaction.subtitle != null &&
                           transaction.subtitle!.trim().isNotEmpty) ...[
-                        _fintechRow('Details', transaction.subtitle!),
+                        _fintechRow('အသေးစိတ်', transaction.subtitle!),
                         const SizedBox(height: 14),
                       ],
-                      _fintechRow('Type', isReceived ? 'Received' : 'Sent'),
+                      _fintechRow(
+                        'အမျိုးအစား',
+                        isReceived ? 'လက်ခံရရှိ' : 'ပို့ပြီး',
+                      ),
                       const SizedBox(height: 14),
-                      _fintechRow('Status', '● Completed', valueColor: success),
+                      _fintechRow('အခြေအနေ', 'ပြီးဆုံး'),
                       const SizedBox(height: 14),
                       _fintechRow(
-                        'Date',
+                        'ရက်စွဲ',
                         _formatFullDateTime(
                           transaction.createdAt,
                         ).split('•')[0].trim(),
                       ),
                       const SizedBox(height: 14),
                       _fintechRow(
-                        'Time',
+                        'အချိန်',
                         _formatFullDateTime(
                           transaction.createdAt,
                         ).split('•')[1].trim(),
                       ),
                       const SizedBox(height: 14),
-                      _fintechRow('Transaction ID', transaction.id),
+                      _fintechRow('ငွေလွှဲကုဒ်', transaction.id),
                     ],
                   ),
                 ),
@@ -433,7 +434,7 @@ class WalletPageState extends State<WalletPage> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: const Text(
-                                  'Saved to gallery successfully!',
+                                  'အောင်မြင်စွာ သိမ်းပြီးပါပြီ။',
                                 ),
                                 backgroundColor: primary,
                                 behavior: SnackBarBehavior.floating,
@@ -449,7 +450,7 @@ class WalletPageState extends State<WalletPage> {
                               Icon(Icons.download_rounded, size: 16),
                               SizedBox(width: 6),
                               Text(
-                                'Save',
+                                'သိမ်းမည်',
                                 style: TextStyle(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.w700,
@@ -477,7 +478,7 @@ class WalletPageState extends State<WalletPage> {
                             Navigator.of(sheetContext).pop();
                           },
                           child: const Text(
-                            'Done',
+                            'ပြီးပါပြီ',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -544,18 +545,18 @@ class WalletPageState extends State<WalletPage> {
 
   String _formatFullDateTime(DateTime dateTime) {
     const monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
+      'ဇန်နဝါရီ',
+      'ဖေဖော်ဝါရီ',
+      'မတ်',
+      'ဧပြီ',
+      'မေ',
+      'ဇွန်',
+      'ဇူလိုင်',
+      'ဩဂုတ်',
+      'စက်တင်ဘာ',
+      'အောက်တိုဘာ',
+      'နိုဝင်ဘာ',
+      'ဒီဇင်ဘာ',
     ];
 
     final int hour = dateTime.hour;
@@ -586,23 +587,18 @@ class WalletPageState extends State<WalletPage> {
 
           PageHeader(
             title: "Moe's Burmese Kitchen",
-            subtitle: 'Point wallet',
+            subtitle: 'ပွိုင့်များနဲ့ အလဲအလှယ်',
             icon: Icons.account_balance_wallet_rounded,
-            isShopOpen: _isShopOpen,
             onStatusChanged: (isOpen) {
-              setState(() {
-                _isShopOpen = isOpen;
-              });
-
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(
                   SnackBar(
                     content: Text(
-                      _isShopOpen ? 'Shop is now OPEN' : 'Shop is now CLOSED',
+                      isOpen ? 'ဆိုင်ဖွင့်ထားပါပြီ' : 'ဆိုင်ပိတ်ထားပါပြီ',
                     ),
                     duration: const Duration(seconds: 2),
-                    backgroundColor: _isShopOpen ? Colors.green : Colors.red,
+                    backgroundColor: isOpen ? Colors.green : Colors.red,
                   ),
                 );
             },
@@ -645,7 +641,7 @@ class WalletPageState extends State<WalletPage> {
                 Expanded(
                   child: WalletActionButton(
                     icon: Icons.send_rounded,
-                    title: 'Transfer',
+                    title: 'လွှဲမည်',
                     onTap: () {
                       Navigator.push(
                         context,
@@ -660,21 +656,21 @@ class WalletPageState extends State<WalletPage> {
                 Expanded(
                   child: WalletActionButton(
                     icon: Icons.qr_code_2_rounded,
-                    title: 'Receive',
+                    title: 'လက်ခံမည်',
                     onTap: _openMyQr,
                   ),
                 ),
                 Expanded(
                   child: WalletActionButton(
                     icon: Icons.qr_code_scanner_rounded,
-                    title: 'Scanner',
+                    title: 'စကင်ဖတ်မည်',
                     onTap: widget.onOpenScanner,
                   ),
                 ),
                 Expanded(
                   child: WalletActionButton(
                     icon: Icons.history_rounded,
-                    title: 'History',
+                    title: 'မှတ်တမ်း',
                     onTap: _openHistory,
                   ),
                 ),
@@ -709,7 +705,7 @@ class WalletPageState extends State<WalletPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Recent Transactions',
+                          'မကြာသေးမီ ငွေလွှဲမှတ်တမ်းများ',
                           style: TextStyle(
                             color: Color(0xff0F172A),
                             fontSize: 16.5,
@@ -718,7 +714,7 @@ class WalletPageState extends State<WalletPage> {
                         ),
                         SizedBox(height: 2),
                         Text(
-                          'Activity logs',
+                          'လုပ်ဆောင်မှုမှတ်တမ်း',
                           style: TextStyle(
                             color: Color(0xff64748B),
                             fontSize: 11.5,
@@ -730,7 +726,7 @@ class WalletPageState extends State<WalletPage> {
                     TextButton(
                       onPressed: _openHistory,
                       child: const Text(
-                        'See all',
+                        'အားလုံး',
                         style: TextStyle(
                           color: Color(0xff0F7B94),
                           fontSize: 13,
@@ -778,7 +774,7 @@ class WalletPageState extends State<WalletPage> {
           Icon(Icons.receipt_long_outlined, color: Color(0xff9BA8AD), size: 38),
           SizedBox(height: 12),
           Text(
-            'No transactions yet',
+            'ငွေလွှဲမှတ်တမ်း မရှိသေးပါ',
             style: TextStyle(
               color: Color(0xff34464E),
               fontSize: 15,
@@ -787,7 +783,7 @@ class WalletPageState extends State<WalletPage> {
           ),
           SizedBox(height: 5),
           Text(
-            'Sent and received points will appear here.',
+            'ပို့ထားသောနှင့် လက်ခံရရှိသော ပွိုင့်များကို ဤနေရာတွင် ပြသမည်။',
             textAlign: TextAlign.center,
             style: TextStyle(color: Color(0xff8D999E), fontSize: 12),
           ),

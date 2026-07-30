@@ -20,16 +20,16 @@ class SeatModel {
   String get statusLabel {
     switch (status) {
       case SeatStatus.available:
-        return 'Available';
+        return 'အားလပ်';
 
       case SeatStatus.occupied:
-        return 'Occupied';
+        return 'အသုံးပြုနေ';
 
       case SeatStatus.reserved:
-        return 'Reserved';
+        return 'ကြိုတင်မှာထား';
 
       case SeatStatus.disabled:
-        return 'Disabled';
+        return 'အသုံးမပြုနိုင်';
     }
   }
 

@@ -8,7 +8,7 @@ class OrderItem {
   final String timeAgo;
   final int points;
   final String? note;
-
+  final String? tableNumber;
   OrderStatus status;
 
   OrderItem({
@@ -20,5 +20,9 @@ class OrderItem {
     required this.points,
     required this.status,
     this.note,
+    this.tableNumber,
   });
+
+  bool get isTableService =>
+      tableNumber != null && tableNumber!.trim().isNotEmpty;
 }
